@@ -1,0 +1,6 @@
+*.out
+*.o
+highscore.txt
+build
+compile_commands.json
+spacecraze

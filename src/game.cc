@@ -1,0 +1,87 @@
+#include "game.h"
+
+#include "play_mode.h"
+
+#include <glad/glad.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
+
+#include <iostream>
+#include <stdexcept>
+
+const int SCREEN_WIDTH = 1024;
+const int SCREEN_HEIGHT = 768;
+
+Game::Game()
+{
+    initSubsystems();
+}
+
+Game::~Game()
+{
+    shutdownSubsystems();
+}
+
+void Game::run()
+{
+    GameState state;
+    current_mode = std::make_unique<PlayMode>(PlayMode());
+
+    while (state.running)
+    {
+        current_mode->handleEvents(&state);
+        current_mode->update(&state);
+        current_mode->render(&state);
+    }
+}
+
+void Game::initSubsystems()
+{
+    { // INIT SDL
+        if ( SDL_Init(SDL_INIT_VIDEO) != 0 || SDL_Init(SDL_INIT_AUDIO) != 0 )
+        {
+            throw std::runtime_error("Failed to initialize SDL");
+        }
+        if ( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+        {
+            throw std::runtime_error("Failed to initialize SDL_Mixer");
+        }
+        if ( TTF_Init() != 0 )
+        {
+            throw std::runtime_error("Failed to initialize TTF_init");
+        }
+
+        SDL_GL_LoadLibrary(NULL);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+        SDL_GL_SetSwapInterval(1);
+    }
+
+    window = SDL_CreateWindow(
+		"SPACECRAZE",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		SCREEN_WIDTH,
+		SCREEN_HEIGHT,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+
+    gl_context = SDL_GL_CreateContext(window);
+
+    // INIT OPENGL
+    if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
+    {
+        throw std::runtime_error("Failed to initialize GLAD");
+    }
+
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
+void Game::shutdownSubsystems()
+{
+    Mix_CloseAudio();
+    TTF_Quit();
+    SDL_Quit();
+}
