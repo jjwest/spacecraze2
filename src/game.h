@@ -2,6 +2,7 @@
 #define _GAME_H_
 
 #include "game_mode.h"
+#include "renderer.h"
 
 #include <glad/glad.h>
 #include <SDL2/SDL.h>

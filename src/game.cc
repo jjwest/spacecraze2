@@ -25,13 +25,27 @@ Game::~Game()
 void Game::run()
 {
     GameState state;
+    Renderer renderer;
+
     current_mode = std::make_unique<PlayMode>(PlayMode());
+    const Uint32 frame_duration_ms = 16;
 
     while (state.running)
     {
+        Uint32 start_time = SDL_GetTicks();
+
         current_mode->handleEvents(&state);
         current_mode->update(&state);
-        current_mode->render(&state);
+        current_mode->render(&renderer, state);
+        SDL_GL_SwapWindow(window);
+
+        Uint32 time_elapsed = SDL_GetTicks() - start_time;
+
+        if (time_elapsed < frame_duration_ms)
+        {
+            SDL_Delay(frame_duration_ms - time_elapsed);
+        }
+
     }
 }
 

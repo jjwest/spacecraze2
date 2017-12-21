@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if ! [ -x "$(command -v cmake)" ]; then
+    echo "CMake found found"
+    exit 1
+fi
+
+mkdir -p build
+(cd build; cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..)
+
+if [ ! -f "./compile_commands.json" ]; then
+    ln -s build/compile_commands.json
+fi

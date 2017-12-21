@@ -8,7 +8,6 @@ file(GLOB SOURCES "src/*.cc" "src/*.c")
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
 
 find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -25,7 +24,6 @@ target_include_directories(
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARY}
-                                ${SDL2_IMAGE_LIBRARIES}
                                 ${SDL2_TTF_LIBRARIES}
                                 ${SDL2_MIXER_LIBRARIES}
                                 ${CMAKE_DL_LIBS}

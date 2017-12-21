@@ -14,7 +14,7 @@ struct PlayMode: public GameMode
     PlayMode();
     virtual void handleEvents(GameState* state) override;
     virtual void update(GameState* state) override;
-    virtual void render(GameState* state) const override;
+    virtual void render(Renderer* renderer, const GameState& state) override;
 };
 
 #endif // _PLAY_MODE_H_

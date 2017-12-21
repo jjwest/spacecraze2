@@ -1,5 +1,7 @@
 #include "play_mode.h"
 
+#include <glad/glad.h>
+
 #include <cassert>
 
 PlayMode::PlayMode() {}
@@ -23,8 +25,8 @@ void PlayMode::update(GameState* state)
 
 }
 
-void PlayMode::render(GameState* state) const
+void PlayMode::render(Renderer* renderer, const GameState& state)
 {
     assert(state);
-
+    renderer->draw_background();
 }
