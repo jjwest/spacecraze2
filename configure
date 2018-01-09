@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if ! [ -x "$(command -v cmake)" ]; then
-    echo "CMake found found"
+if [ ! -x "$(command -v cmake)" ]; then
+    echo "CMake not found!"
     exit 1
 fi
 

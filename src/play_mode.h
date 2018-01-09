@@ -2,13 +2,17 @@
 #define _PLAY_MODE_H_
 
 #include "game_mode.h"
+#include "game_objects.h"
 
 #include <SDL2/SDL.h>
+
+#include <vector>
 
 struct PlayMode: public GameMode
 {
     SDL_Event events;
-
+    Player player;
+    std::vector<Asteroid> asteroids{Asteroid{}};
 
 
     PlayMode();

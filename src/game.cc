@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include "constants.h"
 #include "play_mode.h"
 
 #include <glad/glad.h>
@@ -8,9 +9,6 @@
 
 #include <iostream>
 #include <stdexcept>
-
-const int SCREEN_WIDTH = 1024;
-const int SCREEN_HEIGHT = 768;
 
 Game::Game()
 {
@@ -24,11 +22,11 @@ Game::~Game()
 
 void Game::run()
 {
+    const Uint32 frame_duration_ms = 16;
     GameState state;
     Renderer renderer;
 
     current_mode = std::make_unique<PlayMode>(PlayMode());
-    const Uint32 frame_duration_ms = 16;
 
     while (state.running)
     {
@@ -37,6 +35,7 @@ void Game::run()
         current_mode->handleEvents(&state);
         current_mode->update(&state);
         current_mode->render(&renderer, state);
+
         SDL_GL_SwapWindow(window);
 
         Uint32 time_elapsed = SDL_GetTicks() - start_time;
@@ -90,11 +89,14 @@ void Game::initSubsystems()
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 void Game::shutdownSubsystems()
 {
+    SDL_DestroyWindow(window);
     Mix_CloseAudio();
     TTF_Quit();
     SDL_Quit();

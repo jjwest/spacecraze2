@@ -11,11 +11,13 @@
 struct Texture
 {
     unsigned int id;
-    unsigned int width;
-    unsigned int height;
+    int width;
+    int height;
 
     Texture(const std::string& path);
     ~Texture();
+
+    void bind();
 };
 
 struct Vertex
@@ -28,11 +30,11 @@ struct Mesh
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    unsigned int VBO;
-    unsigned int EBO;
-    unsigned int VAO;
+    unsigned int VBO{};
+    unsigned int EBO{};
+    unsigned int VAO{};
 
-    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+    void build();
     ~Mesh();
 };
 
