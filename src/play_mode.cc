@@ -8,9 +8,6 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include <utility>
-
-#include <cstdio>
 
 
 PlayMode::PlayMode()
@@ -24,6 +21,7 @@ void PlayMode::handleEvents(GameState* state)
         if (events.type == SDL_QUIT)
         {
             state->running = false;
+            state->current_mode = Mode::QUIT;
         }
     }
 
@@ -32,7 +30,12 @@ void PlayMode::handleEvents(GameState* state)
 void PlayMode::update(GameState* state)
 {
     auto key_pressed = SDL_GetKeyboardState(NULL);
-    float speed = 10.0;
+
+    bool diagonal_movement =
+        (key_pressed[SDL_SCANCODE_W] || key_pressed[SDL_SCANCODE_S]) &&
+        (key_pressed[SDL_SCANCODE_A] || key_pressed[SDL_SCANCODE_D]);
+
+    float speed = diagonal_movement ? 8.5 : 10.0;
 
     bool can_move_up = player.position.y - speed >= 0;
     if (key_pressed[SDL_SCANCODE_W] && can_move_up)
@@ -78,8 +81,8 @@ void PlayMode::render(Renderer* renderer, const GameState& state)
     renderer->drawBackground();
     renderer->drawPlayer(player.position, player.angle);
 
-    for (const auto& asteroid : asteroids)
+    for (const Asteroid& asteroid : asteroids)
     {
-        renderer->drawAsteroid(asteroid.position);
+        renderer->drawAsteroid(asteroid.position, asteroid.angle);
     }
 }

@@ -12,7 +12,7 @@ struct PlayMode: public GameMode
 {
     SDL_Event events;
     Player player;
-    std::vector<Asteroid> asteroids{Asteroid{}};
+    std::vector<Asteroid> asteroids{Asteroid{}, Asteroid{}};
 
 
     PlayMode();

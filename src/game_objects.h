@@ -21,7 +21,7 @@ struct Asteroid
     float health = 20.0;
     float health_max = 20.0;
     float angle = 0.0;
-    Rectangle position{500.0, 500.0, 50.0, 50.0};
+    Rectangle position{400.0, 400.0, 50.0, 50.0};
 };
 
 #endif // _GAME_OBJECTS_H_
