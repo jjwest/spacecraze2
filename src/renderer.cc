@@ -1,7 +1,10 @@
 #include "renderer.h"
-#include "constants.h"
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 Renderer::Renderer()
 {
@@ -13,16 +16,15 @@ Renderer::Renderer()
         -1.0f,
         1.0f);
 
-    renderdata_player.shader.use();
-    renderdata_player.shader.setMat4("projection", projection);
-    renderdata_asteroid.shader.use();
-    renderdata_asteroid.shader.setMat4("projection", projection);
+    BindShader(sprite_shader);
+    sprite_shader.SetMat4("projection", projection);
 
     sprite_mesh.vertices = {
-        {{0.0f, 1.0f}, {0.0f, 1.0f}}, // top left
-        {{0.0f, 0.0f}, {0.0f, 0.0f}}, // bottom left
-        {{1.0f, 1.0f}, {1.0f, 1.0f}}, // top right
-        {{1.0f, 0.0f}, {1.0f, 0.0f}}  // bottom right
+        // Position    // Tex coords
+        {{0.0f, 0.0f}, {0.0f, 1.0f}}, // top left
+        {{0.0f, 1.0f}, {0.0f, 0.0f}}, // bottom left
+        {{1.0f, 0.0f}, {1.0f, 1.0f}}, // top right
+        {{1.0f, 1.0f}, {1.0f, 0.0f}}  // bottom right
     };
 
     sprite_mesh.indices = {
@@ -33,50 +35,58 @@ Renderer::Renderer()
     sprite_mesh.build();
 }
 
-void Renderer::drawBackground()
+
+void Renderer::DrawBackground()
 {
     glClearColor(0.3, 0.5, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Renderer::drawPlayer(const Rectangle& rect, float angle)
+void Renderer::DrawPlayer(const Rectangle& rect, float angle)
 {
-    bindTexture(renderdata_player.texture.id);
-    bindShader(renderdata_player.shader.id);
-    glBindVertexArray(sprite_mesh.VAO);
-
-    glm::mat4 model = generateModel(rect, angle);
-    renderdata_player.shader.setMat4("model", model);
-
-    glDrawElements(GL_TRIANGLES, sprite_mesh.indices.size(), GL_UNSIGNED_INT, 0);
+    Draw(rect, renderdata_player, angle);
 }
 
-void Renderer::drawAsteroid(const Rectangle& rect, float angle)
+void Renderer::DrawAsteroid(const Rectangle& rect, float angle)
 {
-    bindTexture(renderdata_asteroid.texture.id);
-    bindShader(renderdata_asteroid.shader.id);
-    glBindVertexArray(sprite_mesh.VAO);
-
-    glm::mat4 model = generateModel(rect, angle);
-    renderdata_asteroid.shader.setMat4("model", model);
-
-    glDrawElements(GL_TRIANGLES, sprite_mesh.indices.size(), GL_UNSIGNED_INT, 0);
+    Draw(rect, renderdata_asteroid, angle);
 }
 
-glm::mat4 Renderer::generateModel(const Rectangle& rect, float angle)
+void Renderer::DrawPlayerLaser(const Rectangle& rect, float angle)
 {
+    Draw(rect, renderdata_player_laser, angle);
+}
+
+void Renderer::DrawBlaster(const Rectangle& rect, float angle)
+{
+    Draw(rect, renderdata_blaster, angle);
+}
+
+void Renderer::DrawDrone(const Rectangle& rect, float angle)
+{
+    Draw(rect, renderdata_drone, angle);
+}
+
+void Renderer::Draw(const Rectangle& rect, const RenderData& target, float angle)
+{
+    BindTexture(target.texture.id);
+    BindShader(*target.shader);
+
     glm::mat4 model;
 
     model = glm::translate(model, glm::vec3(rect.x, rect.y, 0));
     model = glm::translate(model, glm::vec3(0.5 * rect.width, 0.5 * rect.height, 0.0));
-    model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0, 0.0, 1.0));
+    model = glm::rotate(model, glm::radians(angle + 90.0f), glm::vec3(0.0, 0.0, 1.0));
     model = glm::translate(model, glm::vec3(-0.5 * rect.width, -0.5 * rect.height, 0.0));
     model = glm::scale(model, glm::vec3(rect.width, rect.height, 0.0));
 
-    return model;
+    target.shader->SetMat4("model", model);
+
+    glBindVertexArray(sprite_mesh.VAO);
+    glDrawElements(GL_TRIANGLES, sprite_mesh.indices.size(), GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::bindTexture(GLuint texture)
+void Renderer::BindTexture(GLuint texture)
 {
     if (texture != current_texture)
     {
@@ -85,11 +95,11 @@ void Renderer::bindTexture(GLuint texture)
     }
 }
 
-void Renderer::bindShader(GLuint shader)
+void Renderer::BindShader(const Shader& shader)
 {
-    if (shader != current_shader)
+    if (shader.id != current_shader)
     {
-        glUseProgram(shader);
-        current_shader = shader;
+        shader.Use();
+        current_shader = shader.id;
     }
 }

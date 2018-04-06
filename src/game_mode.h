@@ -2,27 +2,15 @@
 #define _GAMEMODE_H_
 
 #include "renderer.h"
-
-enum class Mode
-{
-    PLAY,
-    QUIT,
-};
-
-struct GameState
-{
-    bool running = true;
-    int player_score = 0;
-    Mode current_mode = Mode::PLAY;
-};
+#include "platform.h"
 
 struct GameMode
 {
     GameMode() {};
     virtual ~GameMode() {};
-    virtual void handleEvents(GameState* state) = 0;
-    virtual void update(GameState* state) = 0;
-    virtual void render(Renderer* renderer, const GameState& state) = 0;
+    virtual void HandleEvents(GameState* state) = 0;
+    virtual void Update(GameState* state) = 0;
+    virtual void Render(Renderer* renderer, const GameState& state) = 0;
 };
 
 

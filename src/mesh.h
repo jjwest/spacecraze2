@@ -8,9 +8,11 @@
 #include <string>
 #include <vector>
 
+#include "platform.h"
+
 struct Texture
 {
-    unsigned int id;
+    u32 id;
     int width;
     int height;
 
@@ -23,16 +25,16 @@ struct Texture
 struct Vertex
 {
     glm::vec2 position;
-    glm::vec2 texture_mapping;
+    glm::vec2 texture_coords;
 };
 
 struct Mesh
 {
     std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    unsigned int VBO{};
-    unsigned int EBO{};
-    unsigned int VAO{};
+    std::vector<u32> indices;
+    u32 VBO{};
+    u32 EBO{};
+    u32 VAO{};
 
     void build();
     ~Mesh();

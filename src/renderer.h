@@ -1,53 +1,44 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
-#include "constants.h"
 #include "mesh.h"
 #include "shader.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-struct RenderData
-{
-    Shader shader;
-    Texture texture;
-};
-
-struct Rectangle
-{
-    float x;
-    float y;
-    float width;
-    float height;
-};
+#include "platform.h"
 
 
 struct Renderer
 {
-    RenderData renderdata_player{
-        Shader("../shaders/player.vs", "../shaders/player.fs"),
-        Texture("../assets/sprites/playership.png")
+    struct RenderData
+    {
+        Shader* shader;
+        Texture texture;
     };
 
-    RenderData renderdata_asteroid{
-        Shader("../shaders/player.vs", "../shaders/player.fs"),
-        Texture("../assets/sprites/meteor.png")
-    };
+    Shader sprite_shader{"../shaders/sprite.vs", "../shaders/sprite.fs"};
+
+    RenderData renderdata_player{&sprite_shader, Texture("../assets/sprites/playership.png")};
+    RenderData renderdata_asteroid{&sprite_shader, Texture("../assets/sprites/meteor.png")};
+    RenderData renderdata_blaster{&sprite_shader, Texture("../assets/sprites/blaster.png")};
+    RenderData renderdata_drone{&sprite_shader, Texture("../assets/sprites/drone.png")};
+    RenderData renderdata_player_laser{&sprite_shader, Texture("../assets/sprites/playerlaser.png")};
 
     GLuint current_texture = 0;
     GLuint current_shader = 0;
     Mesh sprite_mesh;
 
     Renderer();
+    void DrawBackground();
+    void DrawPlayer(const Rectangle& rect, float angle = 0.0);
+    void DrawAsteroid(const Rectangle& rect, float angle = 0.0);
+    void DrawBlaster(const Rectangle& rect, float angle);
+    void DrawDrone(const Rectangle& rect, float angle);
+    void DrawPlayerLaser(const Rectangle& rect, float angle = 0.0);
+    void BindTexture(GLuint texture);
+    void BindShader(const Shader& shader);
+    glm::mat4 GenerateModel(const Rectangle& rect, float angle);
 
-    void drawBackground();
-    void drawPlayer(const Rectangle& rect, float angle = 0.0);
-    void drawAsteroid(const Rectangle& rect, float angle = 0.0);
-    void bindTexture(GLuint texture);
-    void bindShader(GLuint shader);
-    glm::mat4 generateModel(const Rectangle& rect, float angle);
+private:
+    void Draw(const Rectangle& rect, const RenderData& render, float angle);
 };
 
 #endif // _RENDERER_H_

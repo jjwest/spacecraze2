@@ -1,54 +1,52 @@
 #include "game.h"
 
-#include "constants.h"
+#include "platform.h"
 #include "play_mode.h"
 
 #include <glad/glad.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
 
-#include <iostream>
 #include <stdexcept>
 
 Game::Game()
 {
-    initSubsystems();
+    InitSubSystems();
 }
 
 Game::~Game()
 {
-    shutdownSubsystems();
+    ShutdownSubSystems();
 }
 
-void Game::run()
+void Game::Run()
 {
-    const Uint32 intended_frame_duration_ms = 16;
+    const u32 intended_frame_duration_ms = 16;
     GameState state;
     Renderer renderer;
 
-    current_mode = std::make_unique<PlayMode>(PlayMode());
+    current_mode = std::make_unique<PlayMode>();
 
     while (state.current_mode != Mode::QUIT)
     {
-        Uint32 start_time = SDL_GetTicks();
+        u32 start_time = SDL_GetTicks();
 
-        current_mode->handleEvents(&state);
-        current_mode->update(&state);
-        current_mode->render(&renderer, state);
+        current_mode->HandleEvents(&state);
+        current_mode->Update(&state);
+        current_mode->Render(&renderer, state);
 
         SDL_GL_SwapWindow(window);
 
-        Uint32 time_elapsed = SDL_GetTicks() - start_time;
+        u32 time_elapsed = SDL_GetTicks() - start_time;
 
         if (time_elapsed < intended_frame_duration_ms)
         {
             SDL_Delay(intended_frame_duration_ms - time_elapsed);
         }
-
     }
 }
 
-void Game::initSubsystems()
+void Game::InitSubSystems()
 {
     // INIT SDL
     if ( SDL_Init(SDL_INIT_VIDEO) != 0 || SDL_Init(SDL_INIT_AUDIO) != 0 )
@@ -80,6 +78,11 @@ void Game::initSubsystems()
 		SCREEN_HEIGHT,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
+    if (!window)
+    {
+        throw std::runtime_error("Failed to create window");
+    }
+
     gl_context = SDL_GL_CreateContext(window);
 
     // INIT OPENGL
@@ -93,7 +96,7 @@ void Game::initSubsystems()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-void Game::shutdownSubsystems()
+void Game::ShutdownSubSystems()
 {
     SDL_DestroyWindow(window);
     Mix_CloseAudio();

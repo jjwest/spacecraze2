@@ -1,19 +1,21 @@
 #ifndef _AABB_H_
 #define _AABB_H_
 
+#include "platform.h"
+
 struct AABB
 {
     int x;
     int y;
-    unsigned int width;
-    unsigned int height;
+    u32 width;
+    u32 height;
 
-    bool collides(const AABB& other) const
+    bool Collides(const AABB& other) const
     {
-        return (static_cast<unsigned int>(x) <= other.x + other.width &&
-                x + width >= static_cast<unsigned int>(other.x) &&
-                static_cast<unsigned int>(y) <= other.y + other.height &&
-                y + height >= static_cast<unsigned int>(other.y));
+        return (static_cast<u32>(x) <= other.x + other.width &&
+                x + width >= static_cast<u32>(other.x) &&
+                static_cast<u32>(y) <= other.y + other.height &&
+                y + height >= static_cast<u32>(other.y));
     }
 };
 
