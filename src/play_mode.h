@@ -10,22 +10,20 @@
 
 struct SpawnInfo
 {
-    u32 width;
-    u32 height;
     u32 amount;
-    u32 delay_ms;
+    u32 cooldown_ms;
     u32 time_last_spawned = 0;
 };
 
-
-struct EnemyValue
-{
-    int asteroid = 50;
-    int drone = 5;
-    int blaster = 25;
+enum Side {
+    LEFT   = 0,
+    RIGHT  = 1,
+    TOP    = 2,
+    BOTTOM = 3
 };
 
-struct PlayMode: GameMode
+
+struct PlayMode: public GameMode
 {
     virtual void HandleEvents(GameState* state) override;
     virtual void Update(GameState* state) override;
@@ -37,22 +35,31 @@ struct PlayMode: GameMode
     std::vector<Blaster> blasters;
     std::vector<Drone> drones;
     std::vector<Laser> player_lasers;
+    std::vector<Laser> blaster_lasers;
 
-    EnemyValue enemy_values;
+    SpawnInfo spawn_info_asteroid = {5, 5000};
+    SpawnInfo spawn_info_blaster = {1, 8000};
+    SpawnInfo spawn_info_drone = {5, 1500};
 
-    SpawnInfo spawn_info_asteroid = {50, 50, 10, 5000};
-    SpawnInfo spawn_info_blaster = {75, 75, 10, 5000};
-    SpawnInfo spawn_info_drone = {75, 75, 5, 500};
+
+    std::random_device random;
+    std::uniform_int_distribution<int> range_x{0, SCREEN_WIDTH};
+    std::uniform_int_distribution<int> range_y{0, SCREEN_HEIGHT};
 
 
 private:
     void UpdatePlayer();
     void UpdateLasers();
-    void UpdateEnemies();
+    void UpdateEntities();
     void SpawnEnemies();
     void ResolveCollisions(GameState* state);
     void RemoveDeadEntities();
-    Point GenerateSpawnPosition(const SpawnInfo& info);
+    Rectangle GenerateSpawnPosition(float width, float height);
+    void SpawnAsteroids();
+    void SpawnBlasters();
+    void SpawnDrones();
+    std::pair<float, float> CalculateAsteroidMovementDeltas(Point spawn_pos);
+    Point GeneratePointOnOppositeSide(Point origin);
 };
 
 #endif // _PLAY_MODE_H_

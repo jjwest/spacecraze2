@@ -2,7 +2,7 @@
 #define _GAMEMODE_H_
 
 #include "renderer.h"
-#include "platform.h"
+#include "common.h"
 
 struct GameMode
 {

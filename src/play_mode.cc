@@ -1,6 +1,6 @@
 #include "play_mode.h"
 
-#include "platform.h"
+#include "common.h"
 #include "mesh.h"
 
 #include <glad/glad.h>
@@ -9,8 +9,10 @@
 #include <algorithm>
 #include <random>
 
+#include <math.h>
 
-void PlayMode::HandleEvents(GameState *state)
+
+void PlayMode::HandleEvents(GameState* state)
 {
     while (SDL_PollEvent(&events) != 0)
     {
@@ -22,170 +24,131 @@ void PlayMode::HandleEvents(GameState *state)
 
 }
 
-void PlayMode::Update(GameState *state)
+void PlayMode::Update(GameState* state)
 {
-    UpdatePlayer();
-    UpdateLasers();
-    UpdateEnemies();
+    UpdateEntities();
     ResolveCollisions(state);
     SpawnEnemies();
     RemoveDeadEntities();
 }
 
-void PlayMode::UpdatePlayer()
+void PlayMode::UpdateEntities()
 {
-    { // Update movement
-        auto key_pressed = SDL_GetKeyboardState(NULL);
+    player.Update(&player_lasers);
 
-        bool diagonal_movement =
-            (key_pressed[SDL_SCANCODE_W] || key_pressed[SDL_SCANCODE_S]) &&
-            (key_pressed[SDL_SCANCODE_A] || key_pressed[SDL_SCANCODE_D]);
-
-        float speed = diagonal_movement ? player.speed * 0.75 : player.speed;
-
-        bool can_move_up = player.position.y - speed >= 0;
-        if (key_pressed[SDL_SCANCODE_W] && can_move_up)
-        {
-            player.position.y -= speed;
-        }
-
-        bool can_move_down = player.position.y + player.hitbox.height + speed <= SCREEN_HEIGHT;
-        if (key_pressed[SDL_SCANCODE_S] && can_move_down)
-        {
-            player.position.y += speed;
-        }
-
-        bool can_move_left = player.position.x - speed >= 0;
-        if (key_pressed[SDL_SCANCODE_A] && can_move_left)
-        {
-            player.position.x -= speed;
-        }
-
-        bool can_move_right = player.position.x + player.hitbox.width + speed <= SCREEN_WIDTH;
-        if (key_pressed[SDL_SCANCODE_D] && can_move_right)
-        {
-            player.position.x += speed;
-        }
-
-        player.hitbox.x = round(player.position.x);
-        player.hitbox.y = round(player.position.y);
-    }
-
-    Point mouse_pos;
-
-    { // Shoot
-        bool left_mouse_button_pressed = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y) & SDL_BUTTON(SDL_BUTTON_LEFT);
-        auto current_time = SDL_GetTicks();
-        if (left_mouse_button_pressed &&
-            (current_time - player.time_last_shot_ms > player.shoot_cooldown_ms))
-        {
-            Point laser_origin;
-            // We hack the positions a bit to ensure the laser originates from a good
-            // position relative to the player ship texture
-            laser_origin.x = static_cast<int>(player.position.x + (0.4 * player.position.width));
-            laser_origin.y = static_cast<int>(round(player.position.y + (player.position.height / 2.5)));
-
-            player_lasers.emplace_back(Laser(laser_origin, mouse_pos, player.damage, player.angle));
-            player.time_last_shot_ms = current_time;
-        }
-    }
-
-	{ // Update angle
-        auto player_center_x = player.position.x + (player.position.width / 2);
-        auto player_center_y = player.position.y + (player.position.height / 2);
-        auto angle_in_radians = atan2(player_center_y - mouse_pos.y, player_center_x - mouse_pos.x);
-        auto angle_in_degrees = angle_in_radians * 180 / M_PI;
-
-        player.angle = static_cast<int>(angle_in_degrees + 180) % 360;
-    }
-}
-
-void PlayMode::UpdateLasers()
-{
-    for (auto& laser : player_lasers)
-    {
-        laser.position.x += laser.direction[0] * laser.speed;
-        laser.position.y += laser.direction[1] * laser.speed;
-        laser.hitbox.x = round(laser.position.x);
-        laser.hitbox.y = round(laser.position.y);
-    }
-}
-
-void PlayMode::UpdateEnemies()
-{
     for (auto& asteroid : asteroids)
     {
-        asteroid.position.x += asteroid.direction[0] * asteroid.speed;
-        asteroid.position.y += asteroid.direction[1] * asteroid.speed;
-        asteroid.hitbox.x = round(asteroid.position.x);
-        asteroid.hitbox.y = round(asteroid.position.y);
-        asteroid.angle += 1.0;
+        asteroid.Update();
     }
 
     for (auto& blaster : blasters)
     {
-        blaster.position.x += blaster.direction[0] * blaster.speed;
-        blaster.position.y += blaster.direction[1] * blaster.speed;
-        blaster.hitbox.x = round(blaster.position.x);
-        blaster.hitbox.y = round(blaster.position.y);
+        blaster.Update(&blaster_lasers, player.position);
     }
 
     for (auto& drone : drones)
     {
-        drone.position.x += drone.direction[0] * drone.speed;
-        drone.position.y += drone.direction[1] * drone.speed;
-        drone.hitbox.x = round(drone.position.x);
-        drone.hitbox.y = round(drone.position.y);
+        drone.Update(player.position);
+    }
+
+    for (auto& laser : player_lasers)
+    {
+        laser.Update();
+    }
+
+    for (auto& laser : blaster_lasers)
+    {
+        laser.Update();
     }
 }
 
 
 void PlayMode::ResolveCollisions(GameState* state)
 {
-    for (const auto& asteroid : asteroids)
+    for (const Asteroid& asteroid : asteroids)
     {
-        if (asteroid.hitbox.Collides(player.hitbox))
+        if (asteroid.position.Intersects(player.position))
+        {
+            state->player_alive = false;
+            state->current_mode = Mode::QUIT;
+        }
+
+        for (Drone& drone : drones)
+        {
+            if (asteroid.position.Intersects(drone.position))
+            {
+                drone.health = 0;
+            }
+        }
+    }
+
+    for (const Blaster& blaster : blasters)
+    {
+        if (blaster.position.Intersects(player.position))
         {
             state->player_alive = false;
             state->current_mode = Mode::QUIT;
         }
     }
 
-    for (const auto& blaster : blasters)
+    for (const Drone& drone : drones)
     {
-        if (blaster.hitbox.Collides(player.hitbox))
+        if (drone.position.Intersects(player.position))
         {
             state->player_alive = false;
             state->current_mode = Mode::QUIT;
         }
     }
 
-    for (auto& laser : player_lasers)
+    for (const Laser& laser : blaster_lasers)
     {
-        for (auto& asteroid : asteroids)
+        if (laser.position.Intersects(player.position))
         {
-            if (laser.hitbox.Collides(asteroid.hitbox))
+            state->player_alive = false;
+            state->current_mode = Mode::QUIT;
+        }
+    }
+
+    for (Laser& laser : player_lasers)
+    {
+        for (Asteroid& asteroid : asteroids)
+        {
+            if (laser.position.Intersects(asteroid.position))
             {
                 laser.health = 0;
                 asteroid.health -= laser.damage;
 
                 if (asteroid.health <= 0)
                 {
-                    state->player_score += enemy_values.asteroid;
+                    state->player_score += asteroid.score_value;
                 }
             }
         }
 
-        for (auto& blaster : blasters)
+        for (Blaster& blaster : blasters)
         {
-            if (laser.hitbox.Collides(blaster.hitbox))
+            if (laser.position.Intersects(blaster.position))
             {
                 laser.health = 0;
                 blaster.health -= laser.damage;
 
                 if (blaster.health <= 0)
                 {
-                    state->player_score += enemy_values.blaster;
+                    state->player_score += blaster.score_value;
+                }
+            }
+        }
+
+        for (Drone& drone : drones)
+        {
+            if (laser.position.Intersects(drone.position))
+            {
+                laser.health = 0;
+                drone.health -= laser.damage;
+
+                if (drone.health <= 0)
+                {
+                    state->player_score += drone.score_value;
                 }
             }
         }
@@ -196,24 +159,29 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
 {
     renderer->DrawBackground();
 
-    for (const auto& laser : player_lasers)
+    for (const Laser& laser : player_lasers)
     {
         renderer->DrawPlayerLaser(laser.position, laser.angle);
     }
 
-    for (const auto& asteroid : asteroids)
+    for (const Asteroid& asteroid : asteroids)
     {
         renderer->DrawAsteroid(asteroid.position, asteroid.angle);
     }
 
-    for (const auto& blaster : blasters)
+    for (const Blaster& blaster : blasters)
     {
         renderer->DrawBlaster(blaster.position, blaster.angle);
     }
 
-    for (const auto& drone : drones)
+    for (const Drone& drone : drones)
     {
         renderer->DrawDrone(drone.position, drone.angle);
+    }
+
+    for (const Laser& laser : blaster_lasers)
+    {
+        renderer->DrawEnemyLaser(laser.position, laser.angle);
     }
 
     renderer->DrawPlayer(player.position, player.angle);
@@ -222,82 +190,53 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
 
 bool OutsideScreen(const Rectangle& rect)
 {
-    return (rect.x + rect.width <= 0 ||
-            rect.x >= SCREEN_WIDTH ||
-            rect.y + rect.height <= 0 ||
-            rect.y >= SCREEN_HEIGHT);
+    return (rect.x + rect.width < 0 ||
+            rect.x > SCREEN_WIDTH ||
+            rect.y + rect.height < 0 ||
+            rect.y > SCREEN_HEIGHT);
 }
 
 void PlayMode::RemoveDeadEntities()
 {
-    asteroids.erase(std::remove_if(
-                        begin(asteroids),
-                        end(asteroids),
-                        [](auto& ast) {
-                            return ast.health <= 0.0 || OutsideScreen(ast.position);
-                        }),
-                    end(asteroids));
+    auto IsDead = [](auto& obj) { return obj.health <= 0.0 || OutsideScreen(obj.position); };
 
-    blasters.erase(std::remove_if(
-                       begin(blasters),
-                       end(blasters),
-                       [](auto& blaster) {
-                           return blaster.health <= 0.0 || OutsideScreen(blaster.position);
-                       }),
-                   end(blasters));
-
-
-    player_lasers.erase(std::remove_if(
-                            begin(player_lasers),
-                            end(player_lasers),
-                            [](auto& laser) {
-                                return laser.health <= 0.0 || OutsideScreen(laser.position);
-                            }),
-                        end(player_lasers));
+    asteroids.erase(std::remove_if(begin(asteroids), end(asteroids), IsDead), end(asteroids));
+    blasters.erase(std::remove_if(begin(blasters), end(blasters), IsDead), end(blasters));
+    drones.erase(std::remove_if(begin(drones), end(drones), IsDead), end(drones));
+    player_lasers.erase(std::remove_if(begin(player_lasers), end(player_lasers), IsDead), end(player_lasers));
 }
 
 
-Point PlayMode::GenerateSpawnPosition(const SpawnInfo& info)
+Rectangle PlayMode::GenerateSpawnPosition(float width, float height)
 {
-    static std::random_device random;
-
-    enum Side {
-        LEFT   = 0,
-        RIGHT  = 1,
-        TOP    = 2,
-        BOTTOM = 3
-    };
-
-    std::uniform_int_distribution<int> spawn_side(0, 3);
-    std::uniform_int_distribution<int> spawn_range_x(0 - info.width, SCREEN_WIDTH);
-    std::uniform_int_distribution<int> spawn_range_y(0 - info.height, SCREEN_HEIGHT);
+    static std::uniform_int_distribution<int> spawn_side(0, 3);
+    static std::uniform_int_distribution<int> spawn_range_x(0 - width, SCREEN_WIDTH);
+    static std::uniform_int_distribution<int> spawn_range_y(0 - height, SCREEN_HEIGHT);
 
     Side side = static_cast<Side>(spawn_side(random));
-    Point spawn_pos;
+    Rectangle spawn_pos;
+    spawn_pos.width = width;
+    spawn_pos.height = height;
 
     switch (side) {
-    case LEFT:
-    {
-        spawn_pos.x = 0 - info.width;
+    case LEFT: {
+        spawn_pos.x = 0 - width;
         spawn_pos.y = spawn_range_y(random);
         break;
     }
-    case RIGHT:
-    {
+    case RIGHT: {
         spawn_pos.x = SCREEN_WIDTH;
         spawn_pos.y = spawn_range_y(random);
         break;
     }
-    case BOTTOM:
-    {
+    case BOTTOM: {
         spawn_pos.x = spawn_range_x(random);
         spawn_pos.y = SCREEN_HEIGHT;
         break;
     }
-    case TOP:
-    {
+    case TOP: {
         spawn_pos.x = spawn_range_x(random);
-        spawn_pos.y = 0 - info.height;
+        spawn_pos.y = 0 - height;
         break;
     }
     };
@@ -308,50 +247,119 @@ Point PlayMode::GenerateSpawnPosition(const SpawnInfo& info)
 
 void PlayMode::SpawnEnemies()
 {
+    SpawnAsteroids();
+    SpawnBlasters();
+    SpawnDrones();
+}
+
+void PlayMode::SpawnAsteroids()
+{
+    SpawnInfo* info = &spawn_info_asteroid;
     auto current_time = SDL_GetTicks();
+    auto time_since_last_spawn = current_time - info->time_last_spawned;
 
-    { // Asteroids
-        auto time_since_last_spawn = current_time - spawn_info_asteroid.time_last_spawned;
-
-        if (time_since_last_spawn >= spawn_info_asteroid.delay_ms)
+    if (time_since_last_spawn >= info->cooldown_ms)
+    {
+        for (u32 i = 0; i < info->amount; ++i)
         {
-            for (u32 i = 0; i < spawn_info_asteroid.amount; ++i)
-            {
-                Point spawn_pos = GenerateSpawnPosition(spawn_info_asteroid);
-                asteroids.emplace_back<Asteroid>(spawn_pos);
-            }
+            Asteroid asteroid;
+            asteroid.position = GenerateSpawnPosition(asteroid.position.width, asteroid.position.height);
 
-            spawn_info_asteroid.time_last_spawned = current_time;
+            auto deltas = CalculateAsteroidMovementDeltas(asteroid.position);
+            asteroid.dx = deltas.first;
+            asteroid.dy = deltas.second;
+
+            asteroids.push_back(asteroid);
         }
+
+        info->time_last_spawned = current_time;
+    }
+}
+
+std::pair<float, float> PlayMode::CalculateAsteroidMovementDeltas(Point origin)
+{
+    Point destination = GeneratePointOnOppositeSide(origin);
+
+    float dx = destination.x - origin.x;
+    float dy = destination.y - origin.y;
+    float longest = std::max( std::abs(dx), std::abs(dy));
+    float dx_per_frame = dx / longest;
+    float dy_per_frame = dy / longest;
+
+    return { dx_per_frame, dy_per_frame };
+}
+
+Point PlayMode::GeneratePointOnOppositeSide(Point origin)
+{
+    Point destination;
+
+    if (origin.x < SCREEN_WIDTH / 2)
+    {
+        destination.x = SCREEN_WIDTH;
+        destination.y = range_y(random);
+    }
+    else if (origin.x >= SCREEN_WIDTH)
+    {
+        destination.x = 0;
+        destination.y = range_y(random);
+    }
+    if (origin.y < SCREEN_HEIGHT / 2)
+    {
+        destination.y = SCREEN_HEIGHT;
+        destination.x = range_x(random);
+    }
+    else if (origin.y >= SCREEN_HEIGHT)
+    {
+        destination.y = 0;
+        destination.x = range_x(random);
     }
 
-    { // Blasters
-        auto time_since_last_spawn = current_time - spawn_info_blaster.time_last_spawned;
+    return destination;
+}
 
-        if (time_since_last_spawn >= spawn_info_blaster.delay_ms)
+
+
+void PlayMode::SpawnDrones()
+{
+    SpawnInfo* info = &spawn_info_drone;
+
+    auto current_time = SDL_GetTicks();
+    auto time_since_last_spawn = current_time - info->time_last_spawned;
+
+    if (time_since_last_spawn >= info->cooldown_ms)
+    {
+        for (u32 i = 0; i < info->amount; ++i)
         {
-            for (u32 i = 0; i < spawn_info_blaster.amount; ++i)
-            {
-                Point spawn_pos = GenerateSpawnPosition(spawn_info_blaster);
-                blasters.emplace_back<Blaster>(spawn_pos);
-            }
-
-            spawn_info_blaster.time_last_spawned = current_time;
+            Drone drone;
+            drone.position = GenerateSpawnPosition(drone.position.width, drone.position.height);
+            drones.push_back(drone);
         }
+
+        info->time_last_spawned = current_time;
+    }
+}
+
+void PlayMode::SpawnBlasters()
+{
+    SpawnInfo* info = &spawn_info_blaster;
+
+    auto current_time = SDL_GetTicks();
+    auto time_since_last_spawn = current_time - info->time_last_spawned;
+
+    if (time_since_last_spawn >= info->cooldown_ms)
+    {
+        for (u32 i = 0; i < info->amount; ++i)
+        {
+            Blaster blaster;
+            Point position = GenerateSpawnPosition(blaster.position.width, blaster.position.height);
+            blaster.position.x = position.x;
+            blaster.position.y = position.y;
+
+            blasters.push_back(blaster);
+        }
+
+        info->time_last_spawned = current_time;
     }
 
-    { // Drones
-        auto time_since_last_spawn = current_time - spawn_info_drone.time_last_spawned;
 
-        if (time_since_last_spawn >= spawn_info_drone.delay_ms)
-        {
-            for (u32 i = 0; i < spawn_info_drone.amount; ++i)
-            {
-                Point spawn_pos = GenerateSpawnPosition(spawn_info_drone);
-                drones.emplace_back<Drone>(spawn_pos);
-            }
-
-            spawn_info_drone.time_last_spawned = current_time;
-        }
-    }
 }

@@ -5,14 +5,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <glad/glad.h>
+
 #include <string>
 #include <vector>
 
-#include "platform.h"
+#include "common.h"
 
 struct Texture
 {
-    u32 id;
+    GLuint id;
     int width;
     int height;
 

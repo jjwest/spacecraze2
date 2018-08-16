@@ -1,7 +1,8 @@
 #include "game.h"
 
-#include "platform.h"
+#include "common.h"
 #include "play_mode.h"
+#include "menu.h"
 
 #include <glad/glad.h>
 #include <SDL2/SDL_mixer.h>
@@ -44,12 +45,14 @@ void Game::Run()
             SDL_Delay(intended_frame_duration_ms - time_elapsed);
         }
     }
+
+    std::cout << "SCORE: " << state.player_score << '\n';
 }
 
 void Game::InitSubSystems()
 {
     // INIT SDL
-    if ( SDL_Init(SDL_INIT_VIDEO) != 0 || SDL_Init(SDL_INIT_AUDIO) != 0 )
+    if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0 )
     {
         throw std::runtime_error("Failed to initialize SDL");
     }
@@ -70,13 +73,34 @@ void Game::InitSubSystems()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
     SDL_GL_SetSwapInterval(1);
 
-    window = SDL_CreateWindow(
-		"SPACECRAZE",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		SCREEN_WIDTH,
-		SCREEN_HEIGHT,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    bool fullscreen = false;
+
+    if (fullscreen)
+    {
+        SDL_DisplayMode mode;
+        SDL_GetCurrentDisplayMode(0, &mode);
+
+        SCREEN_WIDTH = mode.w;
+        SCREEN_HEIGHT = mode.h;
+
+        window = SDL_CreateWindow(
+            "SPACECRAZE",
+            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_UNDEFINED,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
+    else
+    {
+        window = SDL_CreateWindow(
+            "SPACECRAZE",
+            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_UNDEFINED,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    }
 
     if (!window)
     {
@@ -98,6 +122,7 @@ void Game::InitSubSystems()
 
 void Game::ShutdownSubSystems()
 {
+    SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     Mix_CloseAudio();
     TTF_Quit();

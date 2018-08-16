@@ -38,33 +38,49 @@ Renderer::Renderer()
 
 void Renderer::DrawBackground()
 {
-    glClearColor(0.3, 0.5, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    BindTexture(background.texture.id);
+    BindShader(*background.shader);
+
+    glm::mat4 model = glm::mat4(1.0f);
+
+    model = glm::scale(model, glm::vec3(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0));
+
+    background.shader->SetMat4("model", model);
+
+    glBindVertexArray(sprite_mesh.VAO);
+    glDrawElements(GL_TRIANGLES, sprite_mesh.indices.size(), GL_UNSIGNED_INT, 0);
 }
 
 void Renderer::DrawPlayer(const Rectangle& rect, float angle)
 {
-    Draw(rect, renderdata_player, angle);
+    Draw(rect, player, angle);
 }
 
 void Renderer::DrawAsteroid(const Rectangle& rect, float angle)
 {
-    Draw(rect, renderdata_asteroid, angle);
+    Draw(rect, asteroid, angle);
 }
 
 void Renderer::DrawPlayerLaser(const Rectangle& rect, float angle)
 {
-    Draw(rect, renderdata_player_laser, angle);
+    Draw(rect, player_laser, angle);
+}
+
+void Renderer::DrawEnemyLaser(const Rectangle& rect, float angle)
+{
+    Draw(rect, enemy_laser, angle);
 }
 
 void Renderer::DrawBlaster(const Rectangle& rect, float angle)
 {
-    Draw(rect, renderdata_blaster, angle);
+    Draw(rect, blaster, angle);
 }
 
 void Renderer::DrawDrone(const Rectangle& rect, float angle)
 {
-    Draw(rect, renderdata_drone, angle);
+    Draw(rect, drone, angle);
 }
 
 void Renderer::Draw(const Rectangle& rect, const RenderData& target, float angle)
@@ -72,7 +88,7 @@ void Renderer::Draw(const Rectangle& rect, const RenderData& target, float angle
     BindTexture(target.texture.id);
     BindShader(*target.shader);
 
-    glm::mat4 model;
+    glm::mat4 model = glm::mat4(1.0f);
 
     model = glm::translate(model, glm::vec3(rect.x, rect.y, 0));
     model = glm::translate(model, glm::vec3(0.5 * rect.width, 0.5 * rect.height, 0.0));
