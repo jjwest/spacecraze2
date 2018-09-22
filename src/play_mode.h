@@ -15,7 +15,8 @@ struct SpawnInfo
     u32 time_last_spawned = 0;
 };
 
-enum Side {
+enum struct Side
+{
     LEFT   = 0,
     RIGHT  = 1,
     TOP    = 2,
@@ -23,7 +24,7 @@ enum Side {
 };
 
 
-struct PlayMode: public GameMode
+struct PlayMode: GameMode
 {
     virtual void HandleEvents(GameState* state) override;
     virtual void Update(GameState* state) override;
@@ -42,9 +43,18 @@ struct PlayMode: public GameMode
     SpawnInfo spawn_info_drone = {5, 1500};
 
 
+    Texture texture_player {"../assets/sprites/playership.png"};
+    Texture texture_asteroid{"../assets/sprites/meteor.png"};
+    Texture texture_blaster{"../assets/sprites/blaster.png"};
+    Texture texture_drone{"../assets/sprites/drone.png"};
+    Texture texture_player_laser{"../assets/sprites/playerlaser.png"};
+    Texture texture_enemy_laser{"../assets/sprites/enemylaser.png"};
+    Texture texture_background{"../assets/sprites/space.png"};
+
+
     std::random_device random;
-    std::uniform_int_distribution<int> range_x{0, SCREEN_WIDTH};
-    std::uniform_int_distribution<int> range_y{0, SCREEN_HEIGHT};
+    std::uniform_int_distribution<int> range_x{0, g_screen_width};
+    std::uniform_int_distribution<int> range_y{0, g_screen_height};
 
 
 private:
@@ -58,7 +68,6 @@ private:
     void SpawnAsteroids();
     void SpawnBlasters();
     void SpawnDrones();
-    std::pair<float, float> CalculateAsteroidMovementDeltas(Point spawn_pos);
     Point GeneratePointOnOppositeSide(Point origin);
 };
 

@@ -36,6 +36,17 @@ void PlayMode::UpdateEntities()
 {
     player.Update(&player_lasers);
 
+    bool right_mouse_button_pressed = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT);
+    if (right_mouse_button_pressed && player.has_singularity_weapon)
+    {
+        asteroids.clear();
+        blasters.clear();
+        drones.clear();
+        blaster_lasers.clear();
+
+        player.has_singularity_weapon = false;
+    }
+
     for (auto& asteroid : asteroids)
     {
         asteroid.Update();
@@ -157,43 +168,43 @@ void PlayMode::ResolveCollisions(GameState* state)
 
 void PlayMode::Render(Renderer* renderer, const GameState& state)
 {
-    renderer->DrawBackground();
+    renderer->DrawBackground(texture_background);
 
     for (const Laser& laser : player_lasers)
     {
-        renderer->DrawPlayerLaser(laser.position, laser.angle);
+        renderer->DrawRect(laser.position, texture_player_laser, laser.angle);
     }
 
     for (const Asteroid& asteroid : asteroids)
     {
-        renderer->DrawAsteroid(asteroid.position, asteroid.angle);
+        renderer->DrawRect(asteroid.position, texture_asteroid, asteroid.angle);
     }
 
     for (const Blaster& blaster : blasters)
     {
-        renderer->DrawBlaster(blaster.position, blaster.angle);
+        renderer->DrawRect(blaster.position, texture_blaster, blaster.angle);
     }
 
     for (const Drone& drone : drones)
     {
-        renderer->DrawDrone(drone.position, drone.angle);
+        renderer->DrawRect(drone.position, texture_drone, drone.angle);
     }
 
     for (const Laser& laser : blaster_lasers)
     {
-        renderer->DrawEnemyLaser(laser.position, laser.angle);
+        renderer->DrawRect(laser.position, texture_enemy_laser, laser.angle);
     }
 
-    renderer->DrawPlayer(player.position, player.angle);
+    renderer->DrawRect(player.position, texture_player, player.angle);
 }
 
 
 bool OutsideScreen(const Rectangle& rect)
 {
     return (rect.x + rect.width < 0 ||
-            rect.x > SCREEN_WIDTH ||
+            rect.x > g_screen_width ||
             rect.y + rect.height < 0 ||
-            rect.y > SCREEN_HEIGHT);
+            rect.y > g_screen_height);
 }
 
 void PlayMode::RemoveDeadEntities()
@@ -210,8 +221,8 @@ void PlayMode::RemoveDeadEntities()
 Rectangle PlayMode::GenerateSpawnPosition(float width, float height)
 {
     static std::uniform_int_distribution<int> spawn_side(0, 3);
-    static std::uniform_int_distribution<int> spawn_range_x(0 - width, SCREEN_WIDTH);
-    static std::uniform_int_distribution<int> spawn_range_y(0 - height, SCREEN_HEIGHT);
+    static std::uniform_int_distribution<int> spawn_range_x(0 - width, g_screen_width);
+    static std::uniform_int_distribution<int> spawn_range_y(0 - height, g_screen_height);
 
     Side side = static_cast<Side>(spawn_side(random));
     Rectangle spawn_pos;
@@ -219,22 +230,22 @@ Rectangle PlayMode::GenerateSpawnPosition(float width, float height)
     spawn_pos.height = height;
 
     switch (side) {
-    case LEFT: {
+    case Side::LEFT: {
         spawn_pos.x = 0 - width;
         spawn_pos.y = spawn_range_y(random);
         break;
     }
-    case RIGHT: {
-        spawn_pos.x = SCREEN_WIDTH;
+    case Side::RIGHT: {
+        spawn_pos.x = g_screen_width;
         spawn_pos.y = spawn_range_y(random);
         break;
     }
-    case BOTTOM: {
+    case Side::BOTTOM: {
         spawn_pos.x = spawn_range_x(random);
-        spawn_pos.y = SCREEN_HEIGHT;
+        spawn_pos.y = g_screen_height;
         break;
     }
-    case TOP: {
+    case Side::TOP: {
         spawn_pos.x = spawn_range_x(random);
         spawn_pos.y = 0 - height;
         break;
@@ -252,63 +263,26 @@ void PlayMode::SpawnEnemies()
     SpawnDrones();
 }
 
-void PlayMode::SpawnAsteroids()
-{
-    SpawnInfo* info = &spawn_info_asteroid;
-    auto current_time = SDL_GetTicks();
-    auto time_since_last_spawn = current_time - info->time_last_spawned;
-
-    if (time_since_last_spawn >= info->cooldown_ms)
-    {
-        for (u32 i = 0; i < info->amount; ++i)
-        {
-            Asteroid asteroid;
-            asteroid.position = GenerateSpawnPosition(asteroid.position.width, asteroid.position.height);
-
-            auto deltas = CalculateAsteroidMovementDeltas(asteroid.position);
-            asteroid.dx = deltas.first;
-            asteroid.dy = deltas.second;
-
-            asteroids.push_back(asteroid);
-        }
-
-        info->time_last_spawned = current_time;
-    }
-}
-
-std::pair<float, float> PlayMode::CalculateAsteroidMovementDeltas(Point origin)
-{
-    Point destination = GeneratePointOnOppositeSide(origin);
-
-    float dx = destination.x - origin.x;
-    float dy = destination.y - origin.y;
-    float longest = std::max( std::abs(dx), std::abs(dy));
-    float dx_per_frame = dx / longest;
-    float dy_per_frame = dy / longest;
-
-    return { dx_per_frame, dy_per_frame };
-}
-
 Point PlayMode::GeneratePointOnOppositeSide(Point origin)
 {
     Point destination;
 
-    if (origin.x < SCREEN_WIDTH / 2)
+    if (origin.x < g_screen_width / 2)
     {
-        destination.x = SCREEN_WIDTH;
+        destination.x = g_screen_width;
         destination.y = range_y(random);
     }
-    else if (origin.x >= SCREEN_WIDTH)
+    else if (origin.x >= g_screen_width)
     {
         destination.x = 0;
         destination.y = range_y(random);
     }
-    if (origin.y < SCREEN_HEIGHT / 2)
+    if (origin.y < g_screen_height / 2)
     {
-        destination.y = SCREEN_HEIGHT;
+        destination.y = g_screen_height;
         destination.x = range_x(random);
     }
-    else if (origin.y >= SCREEN_HEIGHT)
+    else if (origin.y >= g_screen_height)
     {
         destination.y = 0;
         destination.x = range_x(random);
@@ -317,48 +291,67 @@ Point PlayMode::GeneratePointOnOppositeSide(Point origin)
     return destination;
 }
 
+void PlayMode::SpawnAsteroids()
+{
+    SpawnInfo* spawn = &spawn_info_asteroid;
+    auto current_time = SDL_GetTicks();
+    auto time_since_last_spawn = current_time - spawn->time_last_spawned;
 
+    if (time_since_last_spawn >= spawn->cooldown_ms)
+    {
+        for (u32 i = 0; i < spawn->amount; ++i)
+        {
+            Asteroid asteroid;
+            asteroid.position = GenerateSpawnPosition(asteroid.position.width, asteroid.position.height);
+            Point destination = GeneratePointOnOppositeSide(asteroid.position);
+            auto [dx, dy] = CalculateMovementDeltas(asteroid.position, destination);
+            asteroid.dx = dx;
+            asteroid.dy = dy;
+
+            asteroids.push_back(asteroid);
+        }
+
+        spawn->time_last_spawned = current_time;
+    }
+}
 
 void PlayMode::SpawnDrones()
 {
-    SpawnInfo* info = &spawn_info_drone;
+    SpawnInfo* spawn = &spawn_info_drone;
 
     auto current_time = SDL_GetTicks();
-    auto time_since_last_spawn = current_time - info->time_last_spawned;
+    auto time_since_last_spawn = current_time - spawn->time_last_spawned;
 
-    if (time_since_last_spawn >= info->cooldown_ms)
+    if (time_since_last_spawn >= spawn->cooldown_ms)
     {
-        for (u32 i = 0; i < info->amount; ++i)
+        for (u32 i = 0; i < spawn->amount; ++i)
         {
             Drone drone;
             drone.position = GenerateSpawnPosition(drone.position.width, drone.position.height);
             drones.push_back(drone);
         }
 
-        info->time_last_spawned = current_time;
+        spawn->time_last_spawned = current_time;
     }
 }
 
 void PlayMode::SpawnBlasters()
 {
-    SpawnInfo* info = &spawn_info_blaster;
+    SpawnInfo* spawn = &spawn_info_blaster;
 
     auto current_time = SDL_GetTicks();
-    auto time_since_last_spawn = current_time - info->time_last_spawned;
+    auto time_since_last_spawn = current_time - spawn->time_last_spawned;
 
-    if (time_since_last_spawn >= info->cooldown_ms)
+    if (time_since_last_spawn >= spawn->cooldown_ms)
     {
-        for (u32 i = 0; i < info->amount; ++i)
+        for (u32 i = 0; i < spawn->amount; ++i)
         {
             Blaster blaster;
-            Point position = GenerateSpawnPosition(blaster.position.width, blaster.position.height);
-            blaster.position.x = position.x;
-            blaster.position.y = position.y;
-
+            blaster.position = GenerateSpawnPosition(blaster.position.width, blaster.position.height);
             blasters.push_back(blaster);
         }
 
-        info->time_last_spawned = current_time;
+        spawn->time_last_spawned = current_time;
     }
 
 

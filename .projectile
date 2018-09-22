@@ -1,3 +1,4 @@
--build
--assets
--include
+-/build
+-/assets
+-/include
+-/cmake

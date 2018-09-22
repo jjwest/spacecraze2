@@ -35,7 +35,6 @@ struct Mesh
     std::vector<Vertex> vertices;
     std::vector<u32> indices;
     u32 VBO{};
-    u32 EBO{};
     u32 VAO{};
 
     void build();

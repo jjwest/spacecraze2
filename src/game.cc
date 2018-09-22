@@ -6,18 +6,17 @@
 
 #include <glad/glad.h>
 #include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_ttf.h>
 
 #include <stdexcept>
 
 Game::Game()
 {
-    InitSubSystems();
+    InitSubsystems();
 }
 
 Game::~Game()
 {
-    ShutdownSubSystems();
+    ShutdownSubsystems();
 }
 
 void Game::Run()
@@ -49,7 +48,7 @@ void Game::Run()
     std::cout << "SCORE: " << state.player_score << '\n';
 }
 
-void Game::InitSubSystems()
+void Game::InitSubsystems()
 {
     // INIT SDL
     if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0 )
@@ -60,35 +59,31 @@ void Game::InitSubSystems()
     {
         throw std::runtime_error("Failed to initialize SDL_Mixer");
     }
-    if ( TTF_Init() != 0 )
-    {
-        throw std::runtime_error("Failed to initialize TTF_init");
-    }
 
     SDL_GL_LoadLibrary(NULL);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetSwapInterval(1);
 
-    bool fullscreen = false;
+    bool fullscreen = true;
 
     if (fullscreen)
     {
         SDL_DisplayMode mode;
         SDL_GetCurrentDisplayMode(0, &mode);
 
-        SCREEN_WIDTH = mode.w;
-        SCREEN_HEIGHT = mode.h;
+        g_screen_width = mode.w;
+        g_screen_height = mode.h;
 
         window = SDL_CreateWindow(
             "SPACECRAZE",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
+            g_screen_width,
+            g_screen_height,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
     else
@@ -97,8 +92,8 @@ void Game::InitSubSystems()
             "SPACECRAZE",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
+            g_screen_width,
+            g_screen_height,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     }
 
@@ -117,14 +112,13 @@ void Game::InitSubSystems()
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glViewport(0, 0, g_screen_width, g_screen_height);
 }
 
-void Game::ShutdownSubSystems()
+void Game::ShutdownSubsystems()
 {
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     Mix_CloseAudio();
-    TTF_Quit();
     SDL_Quit();
 }

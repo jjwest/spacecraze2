@@ -19,8 +19,8 @@ struct Game
     ~Game();
 
     void Run();
-    void InitSubSystems();
-    void ShutdownSubSystems();
+    void InitSubsystems();
+    void ShutdownSubsystems();
 };
 
 

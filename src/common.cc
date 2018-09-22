@@ -1,4 +1,4 @@
 #include "common.h"
 
-int SCREEN_WIDTH = 1920;
-int SCREEN_HEIGHT = 1024;
+int g_screen_width = 1920;
+int g_screen_height = 1024;

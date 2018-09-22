@@ -15,8 +15,8 @@ using i32 = int32_t;
 using i64 = int64_t;
 
 
-extern int SCREEN_WIDTH;
-extern int SCREEN_HEIGHT;
+extern int g_screen_width;
+extern int g_screen_height;
 
 struct Rectangle
 {
@@ -59,6 +59,16 @@ struct GameState
     Mode current_mode = Mode::PLAY;
 };
 
+inline std::pair<float, float> CalculateMovementDeltas(Point origin, Point destination)
+{
+    float dx = destination.x - origin.x;
+    float dy = destination.y - origin.y;
+    float largest = std::max( std::abs(dx), std::abs(dy) );
+    float dx_per_frame = dx / largest;
+    float dy_per_frame = dy / largest;
+
+    return { dx_per_frame, dy_per_frame };
+}
 
 
 
