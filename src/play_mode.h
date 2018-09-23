@@ -43,13 +43,13 @@ struct PlayMode: GameMode
     SpawnInfo spawn_info_drone = {5, 1500};
 
 
-    Texture texture_player {"../assets/sprites/playership.png"};
-    Texture texture_asteroid{"../assets/sprites/meteor.png"};
-    Texture texture_blaster{"../assets/sprites/blaster.png"};
-    Texture texture_drone{"../assets/sprites/drone.png"};
-    Texture texture_player_laser{"../assets/sprites/playerlaser.png"};
-    Texture texture_enemy_laser{"../assets/sprites/enemylaser.png"};
-    Texture texture_background{"../assets/sprites/space.png"};
+    Texture texture_player {"../sprites/playership.png"};
+    Texture texture_asteroid{"../sprites/meteor.png"};
+    Texture texture_blaster{"../sprites/blaster.png"};
+    Texture texture_drone{"../sprites/drone.png"};
+    Texture texture_player_laser{"../sprites/playerlaser.png"};
+    Texture texture_enemy_laser{"../sprites/enemylaser.png"};
+    Texture texture_background{"../sprites/space.png"};
 
 
     std::random_device random;

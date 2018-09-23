@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "common.h"
+#include "font.h"
 #include "play_mode.h"
 #include "menu.h"
 
@@ -113,6 +114,8 @@ void Game::InitSubsystems()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glViewport(0, 0, g_screen_width, g_screen_height);
+
+    InitFonts();
 }
 
 void Game::ShutdownSubsystems()

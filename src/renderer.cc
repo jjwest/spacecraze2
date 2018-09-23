@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "opengl.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -8,7 +9,7 @@
 
 Renderer::Renderer()
 {
-    BindShader(sprite_shader);
+    BindShader(sprite_shader.id);
 
     projection = glm::ortho(
         0.0f,
@@ -36,8 +37,8 @@ Renderer::Renderer()
 void Renderer::DrawBackground(const Texture& texture)
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    BindTexture(texture);
-    BindShader(sprite_shader);
+    BindTexture(texture.id);
+    BindShader(sprite_shader.id);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(g_screen_width, g_screen_height, 0));
@@ -50,8 +51,8 @@ void Renderer::DrawBackground(const Texture& texture)
 
 void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float angle)
 {
-    BindTexture(texture);
-    BindShader(sprite_shader);
+    BindTexture(texture.id);
+    BindShader(sprite_shader.id);
 
     glm::mat4 model = glm::mat4(1.0f);
 
@@ -65,22 +66,4 @@ void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float ang
 
     glBindVertexArray(sprite_mesh.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
-void Renderer::BindTexture(const Texture& texture)
-{
-    if (texture.id != current_texture)
-    {
-        glBindTexture(GL_TEXTURE_2D, texture.id);
-        current_texture = texture.id;
-    }
-}
-
-void Renderer::BindShader(const Shader& shader)
-{
-    if (shader.id != current_shader)
-    {
-        glUseProgram(shader.id);
-        current_shader = shader.id;
-    }
 }

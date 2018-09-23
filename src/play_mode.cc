@@ -1,6 +1,7 @@
 #include "play_mode.h"
 
 #include "common.h"
+#include "font.h"
 #include "mesh.h"
 
 #include <glad/glad.h>

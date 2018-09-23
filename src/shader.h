@@ -72,11 +72,6 @@ struct Shader
 
     }
 
-    void Use() const
-    {
-        glUseProgram(id);
-    }
-
     void SetBool(const std::string& name, bool value) const
     {
         glUniform1i(glGetUniformLocation(id, name.c_str()), static_cast<int>(value));

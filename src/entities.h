@@ -14,7 +14,10 @@ struct Player
     float speed = 8.0;
     u32 shoot_cooldown_ms = 50;
     u32 time_last_shot = 0;
-    Rectangle position = {300.0, 300.0, 50.0, 38.0};
+    Rectangle position = {(float)(g_screen_width / 2) - 25,
+                          (float)(g_screen_height / 2) - 19,
+                          50.0,
+                          38.0};
 
     void Update(std::vector<Laser>* player_lasers);
 };

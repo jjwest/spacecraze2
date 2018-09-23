@@ -8,7 +8,7 @@
 
 struct Renderer
 {
-    Shader sprite_shader{"../shaders/sprite.vs", "../shaders/sprite.fs"};
+    Shader sprite_shader{"../shaders/sprite.vert", "../shaders/sprite.frag"};
     GLuint current_texture = 0;
     GLuint current_shader = 0;
     Mesh sprite_mesh;
@@ -18,8 +18,6 @@ struct Renderer
     Renderer();
     void DrawRect(const Rectangle& rect, const Texture& texture, float angle = 0.0f);
     void DrawBackground(const Texture& texture);
-    void BindTexture(const Texture& texture);
-    void BindShader(const Shader& shader);
 };
 
 #endif // _RENDERER_H_
