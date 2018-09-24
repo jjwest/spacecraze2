@@ -5,6 +5,8 @@
 #include "shader.h"
 #include "common.h"
 
+void BindTexture(GLuint id);
+void BindShader(GLuint id);
 
 struct Renderer
 {

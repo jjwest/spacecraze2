@@ -1,8 +1,5 @@
 #include "play_mode.h"
 
-#include "common.h"
-#include "font.h"
-#include "mesh.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -12,6 +9,11 @@
 
 #include <math.h>
 
+void PlayMode::UpdateScore(GameState* state, int new_score)
+{
+    state->player_score = new_score;
+    score_font_animation.time_started_ms = SDL_GetTicks();
+}
 
 void PlayMode::HandleEvents(GameState* state)
 {
@@ -21,25 +23,45 @@ void PlayMode::HandleEvents(GameState* state)
         {
             state->current_mode = Mode::QUIT;
         }
+        else if (events.type == SDL_KEYDOWN && events.key.keysym.scancode == SDL_SCANCODE_Q)
+        {
+            state->current_mode = Mode::QUIT;
+        }
     }
 
 }
 
 void PlayMode::Update(GameState* state)
 {
-    UpdateEntities();
+    UpdateEntities(state);
     ResolveCollisions(state);
     SpawnEnemies();
     RemoveDeadEntities();
 }
 
-void PlayMode::UpdateEntities()
+void PlayMode::UpdateEntities(GameState* state)
 {
     player.Update(&player_lasers);
 
     bool right_mouse_button_pressed = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT);
     if (right_mouse_button_pressed && player.has_singularity_weapon)
     {
+        int added_score = 0;
+        for (const auto& asteroid : asteroids)
+        {
+            added_score += asteroid.score_value;
+        }
+        for (const auto& blaster : blasters)
+        {
+            added_score += blaster.score_value;
+        }
+        for (const auto& drone : drones)
+        {
+            added_score += drone.score_value;
+        }
+
+        UpdateScore(state, state->player_score + added_score);
+
         asteroids.clear();
         blasters.clear();
         drones.clear();
@@ -82,7 +104,6 @@ void PlayMode::ResolveCollisions(GameState* state)
         if (asteroid.position.Intersects(player.position))
         {
             state->player_alive = false;
-            state->current_mode = Mode::QUIT;
         }
 
         for (Drone& drone : drones)
@@ -99,7 +120,6 @@ void PlayMode::ResolveCollisions(GameState* state)
         if (blaster.position.Intersects(player.position))
         {
             state->player_alive = false;
-            state->current_mode = Mode::QUIT;
         }
     }
 
@@ -108,7 +128,6 @@ void PlayMode::ResolveCollisions(GameState* state)
         if (drone.position.Intersects(player.position))
         {
             state->player_alive = false;
-            state->current_mode = Mode::QUIT;
         }
     }
 
@@ -117,7 +136,6 @@ void PlayMode::ResolveCollisions(GameState* state)
         if (laser.position.Intersects(player.position))
         {
             state->player_alive = false;
-            state->current_mode = Mode::QUIT;
         }
     }
 
@@ -132,7 +150,7 @@ void PlayMode::ResolveCollisions(GameState* state)
 
                 if (asteroid.health <= 0)
                 {
-                    state->player_score += asteroid.score_value;
+                    UpdateScore(state, state->player_score + asteroid.score_value);
                 }
             }
         }
@@ -146,7 +164,7 @@ void PlayMode::ResolveCollisions(GameState* state)
 
                 if (blaster.health <= 0)
                 {
-                    state->player_score += blaster.score_value;
+                    UpdateScore(state, state->player_score + blaster.score_value);
                 }
             }
         }
@@ -160,7 +178,7 @@ void PlayMode::ResolveCollisions(GameState* state)
 
                 if (drone.health <= 0)
                 {
-                    state->player_score += drone.score_value;
+                    UpdateScore(state, state->player_score + drone.score_value);
                 }
             }
         }
@@ -197,6 +215,9 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
     }
 
     renderer->DrawRect(player.position, texture_player, player.angle);
+
+    std::string score = "Score: " + std::to_string(state.player_score);
+    DrawAnimatedText(score, g_screen_width - 300.0, g_screen_height - 50.0, 1, glm::vec3(1), score_font_animation);
 }
 
 

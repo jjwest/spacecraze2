@@ -7,7 +7,6 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <iostream>
 
 #include "common.h"
 
@@ -42,7 +41,7 @@ struct Shader
         }
         catch (std::ifstream::failure e)
         {
-            std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+            Error("SHADER::FILE_NOT_SUCCESSFULLY_READ");
         }
 
         const char* vert_shader_code = vertex_code.c_str();
@@ -141,8 +140,8 @@ private:
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if (!success)
             {
-                glGetShaderInfoLog(shader, 512, NULL, info_log);
-                std::cerr << "ERROR::SHADER::" << type << "::COMPILATION_FAILED\n" <<  info_log << std::endl;
+                glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
+                Error("SHADER::%s::COMPILATION_FAILED\n%s\n", type.c_str(), info_log);
             }
         }
         else
@@ -150,8 +149,8 @@ private:
             glGetProgramiv(id, GL_LINK_STATUS, &success);
             if (!success)
             {
-                glGetShaderInfoLog(shader, 512, NULL, info_log);
-                std::cerr << "ERROR::SHADER::" << type << "::LINKING_FAILED\n" << info_log << std::endl;
+                glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
+                Error("SHADER::%s::LINKING_FAILED\n%s\n", type.c_str(), info_log);
             }
         }
     }

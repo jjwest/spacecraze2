@@ -1,6 +1,8 @@
 #ifndef _FONT_H_
 #define _FONT_H_
 
+#include "common.h"
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,7 +12,21 @@
 
 #include <string>
 
+struct FontAnimation
+{
+    u32 duration_ms;
+    u32 time_started_ms;
+    glm::vec3 color;
+};
+
+
 void InitFonts();
 void DrawText(std::string_view text, float x, float y, float scale, glm::vec3 color);
+void DrawAnimatedText(std::string_view text,
+                      float x,
+                      float y,
+                      float scale,
+                      glm::vec3 color,
+                      const FontAnimation animation);
 
 #endif // _FONT_H_

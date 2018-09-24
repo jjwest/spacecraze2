@@ -1,10 +1,8 @@
 #include "mesh.h"
+#include "common.h"
 
 #include <glad/glad.h>
 #include <stb_image.h>
-
-#include <iostream>
-#include <stdexcept>
 
 Texture::Texture(const std::string& path)
 {
@@ -22,7 +20,7 @@ Texture::Texture(const std::string& path)
 
     if (!data)
     {
-        throw std::runtime_error("Failed to load texture '" + path + "'");
+        Error("Failed to load texture '%s'\n", path.c_str());
     }
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -37,16 +35,12 @@ Texture::~Texture()
     glDeleteTextures(1, &id);
 }
 
-void Texture::bind()
-{
-    glBindTexture(GL_TEXTURE_2D, id);
-}
 
 void Mesh::build()
 {
     if (vertices.empty())
     {
-        std::cerr << "Tried building mesh without initializing vertices" << std::endl;
+        Error("Tried building mesh without initializing vertices" );
         return;
     }
 

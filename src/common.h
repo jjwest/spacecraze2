@@ -2,7 +2,10 @@
 #define _COMMON_H_
 
 #include <stdint.h>
+#include <stdio.h>
 #include <random>
+#include <stdarg.h>
+
 
 using u8  = uint8_t;
 using u16 = uint16_t;
@@ -17,6 +20,24 @@ using i64 = int64_t;
 
 extern int g_screen_width;
 extern int g_screen_height;
+
+
+inline void Error(const char* format, ...)
+{
+    fprintf(stderr, "ERROR :: ");
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\n");
+}
+
+inline void FatalError(const char* format, ...)
+{
+    Error(format);
+    exit(1);
+}
+
 
 struct Rectangle
 {

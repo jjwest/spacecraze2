@@ -3,6 +3,9 @@
 
 #include "entities.h"
 #include "game_mode.h"
+#include "common.h"
+#include "font.h"
+#include "mesh.h"
 
 #include <SDL2/SDL.h>
 
@@ -12,7 +15,7 @@ struct SpawnInfo
 {
     u32 amount;
     u32 cooldown_ms;
-    u32 time_last_spawned = 0;
+    u32 time_last_spawned = SDL_GetTicks();
 };
 
 enum struct Side
@@ -51,6 +54,7 @@ struct PlayMode: GameMode
     Texture texture_enemy_laser{"../sprites/enemylaser.png"};
     Texture texture_background{"../sprites/space.png"};
 
+    FontAnimation score_font_animation{400, 10000, glm::vec3(0.0, 1.0, 0.0)};
 
     std::random_device random;
     std::uniform_int_distribution<int> range_x{0, g_screen_width};
@@ -58,9 +62,10 @@ struct PlayMode: GameMode
 
 
 private:
+    void UpdateScore(GameState* state, int new_score);
     void UpdatePlayer();
     void UpdateLasers();
-    void UpdateEntities();
+    void UpdateEntities(GameState* state);
     void SpawnEnemies();
     void ResolveCollisions(GameState* state);
     void RemoveDeadEntities();

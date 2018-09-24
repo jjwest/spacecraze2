@@ -1,12 +1,10 @@
 #include "font.h"
 
-#include "common.h"
 #include "shader.h"
-#include "opengl.h"
+#include "renderer.h"
 
-#include <stdexcept>
-#include <iostream>
-#include <map>
+#include <SDL2/SDL.h>
+#include <unordered_map>
 
 struct Character
 {
@@ -16,7 +14,7 @@ struct Character
     GLuint advance;
 };
 
-std::map<GLchar, Character> characters;
+std::unordered_map<GLchar, Character> characters;
 GLuint VAO;
 GLuint VBO;
 
@@ -27,7 +25,8 @@ void LoadFont(const char* filename, int size, FT_Library library)
     FT_Face face;
     if (FT_New_Face(library, filename, 0, &face))
     {
-        throw std::runtime_error("Failed to load font Roboto Medium");
+        Error("Unable to load font '%s'", filename);
+        return;
     }
 
     FT_Set_Pixel_Sizes(face, 0, size);
@@ -37,7 +36,7 @@ void LoadFont(const char* filename, int size, FT_Library library)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
-            std::cerr << "ERROR::FREETYTPE: Failed to load Glyph for character " << c << std::endl;
+            Error("FONTS::Failed to load Glyph for character '%c'\n", c);
             continue;
         }
 
@@ -65,7 +64,7 @@ void LoadFont(const char* filename, int size, FT_Library library)
             texture,
             glm::ivec2(glyph->bitmap.width, glyph->bitmap.rows),
             glm::ivec2(glyph->bitmap_left, glyph->bitmap_top),
-            glyph->advance.x
+            static_cast<GLuint>(glyph->advance.x)
         };
 
         characters.insert({c, character});
@@ -80,10 +79,10 @@ void InitFonts()
     FT_Library library;
     if (FT_Init_FreeType(&library))
     {
-        throw std::runtime_error("Failed to initialize FreeType library");
+        FatalError("Failed to initialize FreeType library");
     }
 
-    LoadFont("../fonts/Roboto-Medium.ttf", 32, library);
+    LoadFont("../fonts/Roboto-Medium.ttf", 36, library);
 
     { // Setup shader
         glGenVertexArrays(1, &VAO);
@@ -103,6 +102,10 @@ void InitFonts()
 
         BindShader(font_shader->id);
         font_shader->SetMat4("projection", projection);
+        font_shader->SetBool("doAnimation", false);
+        font_shader->SetInt("animationDuration", 1000);
+        font_shader->SetInt("animationTimeElapsed", 0);
+        font_shader->SetVec3("animationColor", glm::vec3(0.7, 0.3, 0.3));
     }
 
     FT_Done_FreeType(library);
@@ -145,4 +148,28 @@ void DrawText(std::string_view text, float x, float y, float scale, glm::vec3 co
 
     glBindVertexArray(0);
     BindTexture(0);
+}
+
+void DrawAnimatedText(std::string_view text,
+                      float x,
+                      float y,
+                      float scale,
+                      glm::vec3 color,
+                      const FontAnimation animation)
+{
+    float time_elapsed = SDL_GetTicks() - animation.time_started_ms;
+    if (time_elapsed <= animation.duration_ms)
+    {
+        BindShader(font_shader->id);
+        font_shader->SetFloat("animationTimeElapsed", (float)time_elapsed);
+        font_shader->SetFloat("animationDuration", (float)animation.duration_ms);
+        font_shader->SetVec3("animationColor", animation.color);
+        font_shader->SetBool("doAnimation", true);
+        DrawText(text, x, y, scale, color);
+        font_shader->SetBool("doAnimation", false);
+    }
+    else
+    {
+        DrawText(text, x, y, scale, color);
+    }
 }

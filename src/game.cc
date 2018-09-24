@@ -8,8 +8,6 @@
 #include <glad/glad.h>
 #include <SDL2/SDL_mixer.h>
 
-#include <stdexcept>
-
 Game::Game()
 {
     InitSubsystems();
@@ -44,9 +42,16 @@ void Game::Run()
         {
             SDL_Delay(intended_frame_duration_ms - time_elapsed);
         }
+
+        if (!state.player_alive)
+        {
+            state.player_score = 0;
+            state.player_alive = true;
+            current_mode = std::make_unique<PlayMode>();
+        }
     }
 
-    std::cout << "SCORE: " << state.player_score << '\n';
+    printf("SCORE: %d\n", state.player_score);
 }
 
 void Game::InitSubsystems()
@@ -54,11 +59,11 @@ void Game::InitSubsystems()
     // INIT SDL
     if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0 )
     {
-        throw std::runtime_error("Failed to initialize SDL");
+        FatalError("Failed to initialize SDL");
     }
     if ( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
     {
-        throw std::runtime_error("Failed to initialize SDL_Mixer");
+        FatalError("Failed to initialize SDL_Mixer");
     }
 
     SDL_GL_LoadLibrary(NULL);
@@ -100,7 +105,7 @@ void Game::InitSubsystems()
 
     if (!window)
     {
-        throw std::runtime_error("Failed to create window");
+        FatalError("Failed to create window");
     }
 
     gl_context = SDL_GL_CreateContext(window);
@@ -108,7 +113,7 @@ void Game::InitSubsystems()
     // INIT OPENGL
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
     {
-        throw std::runtime_error("Failed to initialize GLAD");
+        FatalError("Failed to initialize GLAD");
     }
 
     glEnable(GL_BLEND);

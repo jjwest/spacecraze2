@@ -20,8 +20,6 @@ struct Texture
 
     Texture(const std::string& path);
     ~Texture();
-
-    void bind();
 };
 
 struct Vertex
@@ -33,7 +31,6 @@ struct Vertex
 struct Mesh
 {
     std::vector<Vertex> vertices;
-    std::vector<u32> indices;
     u32 VBO{};
     u32 VAO{};
 

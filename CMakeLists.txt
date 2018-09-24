@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(spacecraze)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${spacecraze_SOURCE_DIR}/cmake")
-set (CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -Woverloaded-virtual -pedantic -g")
+set (CMAKE_CXX_FLAGS "-std=c++17 -O2 -Wall -Wextra -Woverloaded-virtual -pedantic -g")
 
 file(GLOB SOURCES "src/*.cc" "src/*.c")
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
