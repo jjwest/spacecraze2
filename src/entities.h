@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include "mesh.h"
+#include "powerup.h"
+
 
 struct Laser;
 
@@ -19,7 +21,7 @@ struct Player
                           50.0,
                           38.0};
 
-    void Update(std::vector<Laser>* player_lasers);
+    void Update(std::vector<Laser>* player_lasers, const ActivatedPowerups& powerups);
 };
 
 struct Laser
@@ -78,8 +80,5 @@ struct Drone
 
     void Update(Point destination);
 };
-
-
-
 
 #endif // _ENTITIES_H_

@@ -14,7 +14,7 @@ int AngleInDegrees(Point from, Point to)
 }
 
 
-void Player::Update(std::vector<Laser>* player_lasers)
+void Player::Update(std::vector<Laser>* player_lasers, const ActivatedPowerups& powerups)
 {
     { // Update movement
         auto key_pressed = SDL_GetKeyboardState(NULL);
@@ -53,7 +53,10 @@ void Player::Update(std::vector<Laser>* player_lasers)
     Point mouse_position;
 
     { // Shoot
-        bool left_mouse_button_pressed = SDL_GetMouseState(&mouse_position.x, &mouse_position.y) & SDL_BUTTON(SDL_BUTTON_LEFT);
+        bool left_mouse_button_pressed =
+            SDL_GetMouseState(&mouse_position.x, &mouse_position.y)
+            & SDL_BUTTON(SDL_BUTTON_LEFT);
+
         auto current_time = SDL_GetTicks();
 
         if (left_mouse_button_pressed &&
@@ -64,6 +67,10 @@ void Player::Update(std::vector<Laser>* player_lasers)
             // position relative to the player ship texture
             origin.x = static_cast<int>(position.x + (0.4 * position.width));
             origin.y = static_cast<int>(round(position.y + (position.height / 2.5)));
+
+            float damage = powerups.Contains(PowerupKind::DOUBLE_DAMAGE)
+                ? this->damage * 2
+                : this->damage;
 
             Laser laser(origin, mouse_position, damage, angle);
             laser.speed = 12.0;

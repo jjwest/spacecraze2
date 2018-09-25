@@ -35,13 +35,15 @@ void PlayMode::Update(GameState* state)
 {
     UpdateEntities(state);
     ResolveCollisions(state);
+    SpawnPowerups();
     SpawnEnemies();
     RemoveDeadEntities();
 }
 
 void PlayMode::UpdateEntities(GameState* state)
 {
-    player.Update(&player_lasers);
+    player.Update(&player_lasers, activated_powerups);
+    activated_powerups.Update();
 
     bool right_mouse_button_pressed = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT);
     if (right_mouse_button_pressed && player.has_singularity_weapon)
@@ -94,8 +96,41 @@ void PlayMode::UpdateEntities(GameState* state)
     {
         laser.Update();
     }
+
+    for (auto& powerup : idle_powerups)
+    {
+        powerup.angle++;
+    }
 }
 
+void PlayMode::SpawnPowerups()
+{
+    SpawnInfo* info = &spawn_info_powerup;
+    u32 time_since_last_spawn = SDL_GetTicks() - info->time_last_spawned;
+    if (time_since_last_spawn > info->cooldown_ms)
+    {
+        Powerup powerup;
+        int powerup_count = static_cast<int>(PowerupKind::COUNT);
+        std::uniform_int_distribution<int> select_powerup{0, powerup_count - 1};
+        PowerupKind kind = static_cast<PowerupKind>(select_powerup(random));
+        powerup.kind = kind;
+        powerup.position = GeneratePowerupSpawnPosition(powerup.position.width, powerup.position.height);
+
+        switch (kind)
+        {
+        case PowerupKind::DOUBLE_DAMAGE:
+            powerup.duration_ms = 3000;
+            break;
+
+        case PowerupKind::COUNT:
+            Error("Tried to instantiate powerup of kind COUNT.");
+            break;
+        }
+
+        idle_powerups.push_back(powerup);
+        info->time_last_spawned = SDL_GetTicks();
+    }
+}
 
 void PlayMode::ResolveCollisions(GameState* state)
 {
@@ -183,6 +218,16 @@ void PlayMode::ResolveCollisions(GameState* state)
             }
         }
     }
+
+    for (Powerup& powerup : idle_powerups)
+    {
+        if (powerup.position.Intersects(player.position))
+        {
+            powerup.time_activated = SDL_GetTicks();
+            activated_powerups.powerups.push_back(powerup);
+            powerup.idle_on_map = false;
+        }
+    }
 }
 
 void PlayMode::Render(Renderer* renderer, const GameState& state)
@@ -214,10 +259,22 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
         renderer->DrawRect(laser.position, texture_enemy_laser, laser.angle);
     }
 
+    for (const Powerup& powerup : idle_powerups)
+    {
+        renderer->DrawRect(powerup.position, texture_double_damage, powerup.angle);
+    }
+
     renderer->DrawRect(player.position, texture_player, player.angle);
 
     std::string score = "Score: " + std::to_string(state.player_score);
-    DrawAnimatedText(score, g_screen_width - 300.0, g_screen_height - 50.0, 1, glm::vec3(1), score_font_animation);
+    DrawAnimatedText(score, g_screen_width - 300.0, 50.0, 1, glm::vec3(1), score_font_animation);
+
+    if (activated_powerups.Contains(PowerupKind::DOUBLE_DAMAGE))
+    {
+        float x = player.position.x - 60.0;
+        float y = player.position.y + player.position.height + 30.0;
+        DrawText("DOUBLE DAMAGE!", x, y, 0.6, glm::vec3(1.0, 1.0, 0.0));
+    }
 }
 
 
@@ -237,10 +294,12 @@ void PlayMode::RemoveDeadEntities()
     blasters.erase(std::remove_if(begin(blasters), end(blasters), IsDead), end(blasters));
     drones.erase(std::remove_if(begin(drones), end(drones), IsDead), end(drones));
     player_lasers.erase(std::remove_if(begin(player_lasers), end(player_lasers), IsDead), end(player_lasers));
+    idle_powerups.erase(std::remove_if(begin(idle_powerups), end(idle_powerups),
+                                       [] (const Powerup& p) { return !p.idle_on_map; }), end(idle_powerups));
 }
 
 
-Rectangle PlayMode::GenerateSpawnPosition(float width, float height)
+Rectangle PlayMode::GenerateEnemySpawnPosition(float width, float height)
 {
     static std::uniform_int_distribution<int> spawn_side(0, 3);
     static std::uniform_int_distribution<int> spawn_range_x(0 - width, g_screen_width);
@@ -277,6 +336,19 @@ Rectangle PlayMode::GenerateSpawnPosition(float width, float height)
     return spawn_pos;
 }
 
+Rectangle PlayMode::GeneratePowerupSpawnPosition(float width, float height)
+{
+    static std::uniform_int_distribution<int> spawn_range_x(0, g_screen_width - width);
+    static std::uniform_int_distribution<int> spawn_range_y(0, g_screen_height - height);
+
+    Rectangle spawn_pos;
+    spawn_pos.width = width;
+    spawn_pos.height = height;
+    spawn_pos.x = spawn_range_x(random);
+    spawn_pos.y = spawn_range_y(random);
+
+    return spawn_pos;
+}
 
 void PlayMode::SpawnEnemies()
 {
@@ -324,7 +396,7 @@ void PlayMode::SpawnAsteroids()
         for (u32 i = 0; i < spawn->amount; ++i)
         {
             Asteroid asteroid;
-            asteroid.position = GenerateSpawnPosition(asteroid.position.width, asteroid.position.height);
+            asteroid.position = GenerateEnemySpawnPosition(asteroid.position.width, asteroid.position.height);
             Point destination = GeneratePointOnOppositeSide(asteroid.position);
             auto [dx, dy] = CalculateMovementDeltas(asteroid.position, destination);
             asteroid.dx = dx;
@@ -349,7 +421,7 @@ void PlayMode::SpawnDrones()
         for (u32 i = 0; i < spawn->amount; ++i)
         {
             Drone drone;
-            drone.position = GenerateSpawnPosition(drone.position.width, drone.position.height);
+            drone.position = GenerateEnemySpawnPosition(drone.position.width, drone.position.height);
             drones.push_back(drone);
         }
 
@@ -369,7 +441,7 @@ void PlayMode::SpawnBlasters()
         for (u32 i = 0; i < spawn->amount; ++i)
         {
             Blaster blaster;
-            blaster.position = GenerateSpawnPosition(blaster.position.width, blaster.position.height);
+            blaster.position = GenerateEnemySpawnPosition(blaster.position.width, blaster.position.height);
             blasters.push_back(blaster);
         }
 

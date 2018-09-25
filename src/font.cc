@@ -98,7 +98,10 @@ void InitFonts()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         font_shader = new Shader("../shaders/font.vert", "../shaders/font.frag");
-        glm::mat4 projection = glm::ortho(0.0f, (float)g_screen_width, 0.0f, (float)g_screen_height);
+        glm::mat4 projection = glm::ortho(0.0f,
+        static_cast<float>(g_screen_width),
+        static_cast<float>(g_screen_height),
+        0.0f);
 
         BindShader(font_shader->id);
         font_shader->SetMat4("projection", projection);
@@ -130,13 +133,13 @@ void DrawText(std::string_view text, float x, float y, float scale, glm::vec3 co
         GLfloat h = ch.size.y * scale;
 
         GLfloat vertices[6][4] = {
-            { xpos,     ypos + h,   0.0, 0.0 },
+            { xpos,     ypos - h,   0.0, 0.0 },
             { xpos,     ypos,       0.0, 1.0 },
             { xpos + w, ypos,       1.0, 1.0 },
 
-            { xpos,     ypos + h,   0.0, 0.0 },
+            { xpos,     ypos - h,   0.0, 0.0 },
             { xpos + w, ypos,       1.0, 1.0 },
-            { xpos + w, ypos + h,   1.0, 0.0 }
+            { xpos + w, ypos - h,   1.0, 0.0 }
         };
 
         BindTexture(ch.texture_id);

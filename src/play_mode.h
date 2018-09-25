@@ -1,11 +1,12 @@
 #ifndef _PLAY_MODE_H_
 #define _PLAY_MODE_H_
 
-#include "entities.h"
-#include "game_mode.h"
 #include "common.h"
+#include "entities.h"
 #include "font.h"
+#include "game_mode.h"
 #include "mesh.h"
+#include "powerup.h"
 
 #include <SDL2/SDL.h>
 
@@ -40,11 +41,14 @@ struct PlayMode: GameMode
     std::vector<Drone> drones;
     std::vector<Laser> player_lasers;
     std::vector<Laser> blaster_lasers;
+    std::vector<Powerup> idle_powerups;
+
+    ActivatedPowerups activated_powerups;
 
     SpawnInfo spawn_info_asteroid = {5, 5000};
     SpawnInfo spawn_info_blaster = {1, 8000};
     SpawnInfo spawn_info_drone = {5, 1500};
-
+    SpawnInfo spawn_info_powerup = {1, 4000};
 
     Texture texture_player {"../sprites/playership.png"};
     Texture texture_asteroid{"../sprites/meteor.png"};
@@ -53,6 +57,7 @@ struct PlayMode: GameMode
     Texture texture_player_laser{"../sprites/playerlaser.png"};
     Texture texture_enemy_laser{"../sprites/enemylaser.png"};
     Texture texture_background{"../sprites/space.png"};
+    Texture texture_double_damage{"../sprites/double_damage.png"};
 
     FontAnimation score_font_animation{400, 10000, glm::vec3(0.0, 1.0, 0.0)};
 
@@ -66,10 +71,12 @@ private:
     void UpdatePlayer();
     void UpdateLasers();
     void UpdateEntities(GameState* state);
+    void SpawnPowerups();
     void SpawnEnemies();
     void ResolveCollisions(GameState* state);
     void RemoveDeadEntities();
-    Rectangle GenerateSpawnPosition(float width, float height);
+    Rectangle GenerateEnemySpawnPosition(float width, float height);
+    Rectangle GeneratePowerupSpawnPosition(float width, float height);
     void SpawnAsteroids();
     void SpawnBlasters();
     void SpawnDrones();

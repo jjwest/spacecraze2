@@ -21,18 +21,6 @@ void main()
         float intensity = (animationDuration - animationTimeElapsed) / animationTimeElapsed;
         FragColor = mix(normalColor, animatedSampled, intensity);
     }
-    // if (doAnimation)
-    // {
-    //     float accentuationPoint = animationDuration * 0.10;
-    //     float timeRemaining = animationDuration - animationTimeElapsed;
-    //     float elapsedDistanceToAccentuation = abs(accentuationPoint - animationTimeElapsed);
-    //     float remainingDistanceToAccentuation = abs(accentuationPoint - timeRemaining);
-
-    //     vec4 animatedSampled = vec4(animationColor, texture(text, TexCoords).r);
-    //     float shortestDistance = min(elapsedDistanceToAccentuation, remainingDistanceToAccentuation);
-    //     float intensity = (shortestDistance * 2) / animationDuration;
-    //     FragColor = mix(animatedSampled, normalColor, intensity);
-    // }
     else
     {
         FragColor = normalColor;
