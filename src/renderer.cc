@@ -70,10 +70,15 @@ void Renderer::DrawBackground(const Texture& texture)
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float angle)
+void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float angle, Shader* shader)
 {
+    if (!shader)
+    {
+        shader = &sprite_shader;
+    }
+
+    BindShader(shader->id);
     BindTexture(texture.id);
-    BindShader(sprite_shader.id);
 
     glm::mat4 model = glm::mat4(1.0f);
 
@@ -83,7 +88,7 @@ void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float ang
     model = glm::translate(model, glm::vec3(-0.5 * rect.width, -0.5 * rect.height, 0.0));
     model = glm::scale(model, glm::vec3(rect.width, rect.height, 0.0));
 
-    sprite_shader.SetMat4("model", model);
+    shader->SetMat4("model", model);
 
     glBindVertexArray(sprite_mesh.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);

@@ -9,6 +9,20 @@
 
 #include <math.h>
 
+PlayMode::PlayMode()
+{
+    BindShader(laser_shader.id);
+    glm::mat4 projection = glm::ortho(
+        0.0f,
+        static_cast<float>(g_screen_width),
+        static_cast<float>(g_screen_height),
+        0.0f,
+        -1.0f,
+        1.0f);
+
+    laser_shader.SetMat4("projection", projection);
+}
+
 void PlayMode::UpdateScore(GameState* state, int new_score)
 {
     state->player_score = new_score;
@@ -234,9 +248,12 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
 {
     renderer->DrawBackground(texture_background);
 
+    BindShader(laser_shader.id);
+    laser_shader.SetBool("doubleDamage", activated_powerups.Contains(PowerupKind::DOUBLE_DAMAGE));
+
     for (const Laser& laser : player_lasers)
     {
-        renderer->DrawRect(laser.position, texture_player_laser, laser.angle);
+        renderer->DrawRect(laser.position, texture_player_laser, laser.angle, &laser_shader);
     }
 
     for (const Asteroid& asteroid : asteroids)

@@ -18,7 +18,7 @@ struct Renderer
 
 
     Renderer();
-    void DrawRect(const Rectangle& rect, const Texture& texture, float angle = 0.0f);
+    void DrawRect(const Rectangle& rect, const Texture& texture, float angle = 0.0f, Shader* shader = nullptr);
     void DrawBackground(const Texture& texture);
 };
 

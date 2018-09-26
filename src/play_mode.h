@@ -30,6 +30,7 @@ enum struct Side
 
 struct PlayMode: GameMode
 {
+    PlayMode();
     virtual void HandleEvents(GameState* state) override;
     virtual void Update(GameState* state) override;
     virtual void Render(Renderer* renderer, const GameState& state) override;
@@ -59,6 +60,7 @@ struct PlayMode: GameMode
     Texture texture_background{"../sprites/space.png"};
     Texture texture_double_damage{"../sprites/double_damage.png"};
 
+    Shader laser_shader{"../shaders/laser.vert", "../shaders/laser.frag"};
     FontAnimation score_font_animation{400, 10000, glm::vec3(0.0, 1.0, 0.0)};
 
     std::random_device random;
