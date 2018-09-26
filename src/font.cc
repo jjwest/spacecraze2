@@ -83,6 +83,9 @@ void InitFonts()
     }
 
     LoadFont("../fonts/Roboto-Medium.ttf", 36, library);
+    FT_Done_FreeType(library);
+
+
 
     { // Setup shader
         glGenVertexArrays(1, &VAO);
@@ -108,10 +111,8 @@ void InitFonts()
         font_shader->SetBool("doAnimation", false);
         font_shader->SetInt("animationDuration", 1000);
         font_shader->SetInt("animationTimeElapsed", 0);
-        font_shader->SetVec3("animationColor", glm::vec3(0.7, 0.3, 0.3));
+        font_shader->SetVec3("animationColor", COLOR_GREEN);
     }
-
-    FT_Done_FreeType(library);
 }
 
 
@@ -124,10 +125,17 @@ void DrawText(std::string_view text, float x, float y, float scale, glm::vec3 co
 
     for (char c : text)
     {
-        Character ch = characters.at(c);
+        auto it = characters.find(c);
+        if (it == end(characters))
+        {
+            Error("Could not find character '%c' from the font", c);
+            continue;
+        }
+
+        Character ch = it->second;
 
         GLfloat xpos = x + ch.bearing.x * scale;
-        GLfloat ypos = y - (ch.size.y - ch.bearing.y) * scale;
+        GLfloat ypos = y + (ch.size.y - ch.bearing.y) * scale;
 
         GLfloat w = ch.size.x * scale;
         GLfloat h = ch.size.y * scale;

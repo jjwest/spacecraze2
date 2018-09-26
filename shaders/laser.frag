@@ -11,8 +11,7 @@ void main()
 {
     if (doubleDamage)
     {
-        vec4 sampled = texture(image, TexCoord);
-        FragColor = vec4(1.0, 1.0, 0.0, sampled.a);
+        FragColor = vec4(1.0, 1.0, 0.0, texture(image, TexCoord).a);
     }
     else
     {

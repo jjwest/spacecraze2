@@ -111,7 +111,7 @@ void PlayMode::UpdateEntities(GameState* state)
         laser.Update();
     }
 
-    for (auto& powerup : idle_powerups)
+    for (auto& powerup : spawned_powerups)
     {
         powerup.angle++;
     }
@@ -141,7 +141,7 @@ void PlayMode::SpawnPowerups()
             break;
         }
 
-        idle_powerups.push_back(powerup);
+        spawned_powerups.push_back(powerup);
         info->time_last_spawned = SDL_GetTicks();
     }
 }
@@ -233,7 +233,7 @@ void PlayMode::ResolveCollisions(GameState* state)
         }
     }
 
-    for (Powerup& powerup : idle_powerups)
+    for (Powerup& powerup : spawned_powerups)
     {
         if (powerup.position.Intersects(player.position))
         {
@@ -250,6 +250,11 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
 
     BindShader(laser_shader.id);
     laser_shader.SetBool("doubleDamage", activated_powerups.Contains(PowerupKind::DOUBLE_DAMAGE));
+
+    for (const Powerup& powerup : spawned_powerups)
+    {
+        renderer->DrawRect(powerup.position, texture_double_damage, powerup.angle);
+    }
 
     for (const Laser& laser : player_lasers)
     {
@@ -274,11 +279,6 @@ void PlayMode::Render(Renderer* renderer, const GameState& state)
     for (const Laser& laser : blaster_lasers)
     {
         renderer->DrawRect(laser.position, texture_enemy_laser, laser.angle);
-    }
-
-    for (const Powerup& powerup : idle_powerups)
-    {
-        renderer->DrawRect(powerup.position, texture_double_damage, powerup.angle);
     }
 
     renderer->DrawRect(player.position, texture_player, player.angle);
@@ -311,8 +311,8 @@ void PlayMode::RemoveDeadEntities()
     blasters.erase(std::remove_if(begin(blasters), end(blasters), IsDead), end(blasters));
     drones.erase(std::remove_if(begin(drones), end(drones), IsDead), end(drones));
     player_lasers.erase(std::remove_if(begin(player_lasers), end(player_lasers), IsDead), end(player_lasers));
-    idle_powerups.erase(std::remove_if(begin(idle_powerups), end(idle_powerups),
-                                       [] (const Powerup& p) { return !p.idle_on_map; }), end(idle_powerups));
+    spawned_powerups.erase(std::remove_if(begin(spawned_powerups), end(spawned_powerups),
+                                       [] (const Powerup& p) { return !p.idle_on_map; }), end(spawned_powerups));
 }
 
 

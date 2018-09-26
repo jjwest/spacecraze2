@@ -12,6 +12,8 @@
 
 #include <string>
 
+#define COLOR_GREEN glm::vec3(0.7, 0.7, 0.3)
+
 struct FontAnimation
 {
     u32 duration_ms;

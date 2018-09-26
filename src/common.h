@@ -37,6 +37,7 @@ inline void FatalError(const char* format, ...)
     exit(1);
 }
 
+struct Point;
 
 struct Rectangle
 {
@@ -45,13 +46,8 @@ struct Rectangle
     float width;
     float height;
 
-    bool Intersects(const Rectangle& other) const
-    {
-        return (x <= other.x + other.width &&
-                x + width >= other.x &&
-                y <= other.y + other.height &&
-                y + height >= other.y);
-    }
+    bool Intersects(const Rectangle& other) const;
+    bool Contains(Point point) const;
 };
 
 struct Point
@@ -68,6 +64,7 @@ struct Point
 
 enum struct Mode
 {
+    MENU,
     PLAY,
     QUIT,
 };
@@ -76,7 +73,7 @@ struct GameState
 {
     bool player_alive = true;
     int player_score = 0;
-    Mode current_mode = Mode::PLAY;
+    Mode current_mode = Mode::MENU;
 };
 
 inline std::pair<float, float> CalculateMovementDeltas(Point origin, Point destination)

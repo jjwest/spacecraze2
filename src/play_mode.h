@@ -42,7 +42,7 @@ struct PlayMode: GameMode
     std::vector<Drone> drones;
     std::vector<Laser> player_lasers;
     std::vector<Laser> blaster_lasers;
-    std::vector<Powerup> idle_powerups;
+    std::vector<Powerup> spawned_powerups;
 
     ActivatedPowerups activated_powerups;
 
