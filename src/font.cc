@@ -20,10 +20,10 @@ GLuint VBO;
 
 Shader* font_shader;
 
-void LoadFont(const char* filename, int size, FT_Library library)
+void LoadFont(std::string_view filename, int size, FT_Library library)
 {
     FT_Face face;
-    if (FT_New_Face(library, filename, 0, &face))
+    if (FT_New_Face(library, filename.data(), 0, &face))
     {
         Error("Unable to load font '%s'", filename);
         return;

@@ -71,66 +71,66 @@ struct Shader
 
     }
 
-    void SetBool(const std::string& name, bool value) const
+    void SetBool(std::string_view name, bool value) const
     {
-        glUniform1i(glGetUniformLocation(id, name.c_str()), static_cast<int>(value));
+        glUniform1i(glGetUniformLocation(id, name.data()), static_cast<int>(value));
     }
 
-    void SetInt(const std::string& name, int value) const
+    void SetInt(std::string_view name, int value) const
     {
-        glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+        glUniform1i(glGetUniformLocation(id, name.data()), value);
     }
 
-    void SetFloat(const std::string& name, float value) const
+    void SetFloat(std::string_view name, float value) const
     {
-        glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+        glUniform1f(glGetUniformLocation(id, name.data()), value);
     }
 
-    void SetVec2(const std::string& name, const glm::vec2 &value) const
+    void SetVec2(std::string_view name, const glm::vec2 &value) const
     {
-        glUniform2fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+        glUniform2fv(glGetUniformLocation(id, name.data()), 1, &value[0]);
     }
 
-    void SetVec2(const std::string& name, float x, float y) const
+    void SetVec2(std::string_view name, float x, float y) const
     {
-        glUniform2f(glGetUniformLocation(id, name.c_str()), x, y);
+        glUniform2f(glGetUniformLocation(id, name.data()), x, y);
     }
 
-    void SetVec3(const std::string& name, const glm::vec3 &value) const
+    void SetVec3(std::string_view name, const glm::vec3 &value) const
     {
-        glUniform3fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+        glUniform3fv(glGetUniformLocation(id, name.data()), 1, &value[0]);
     }
-    void SetVec3(const std::string& name, float x, float y, float z) const
+    void SetVec3(std::string_view name, float x, float y, float z) const
     {
-        glUniform3f(glGetUniformLocation(id, name.c_str()), x, y, z);
-    }
-
-    void SetVec4(const std::string& name, const glm::vec4 &value) const
-    {
-        glUniform4fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
-    }
-    void SetVec4(const std::string& name, float x, float y, float z, float w) const
-    {
-        glUniform4f(glGetUniformLocation(id, name.c_str()), x, y, z, w);
+        glUniform3f(glGetUniformLocation(id, name.data()), x, y, z);
     }
 
-    void SetMat2(const std::string& name, const glm::mat2 &mat) const
+    void SetVec4(std::string_view name, const glm::vec4 &value) const
     {
-        glUniformMatrix2fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+        glUniform4fv(glGetUniformLocation(id, name.data()), 1, &value[0]);
+    }
+    void SetVec4(std::string_view name, float x, float y, float z, float w) const
+    {
+        glUniform4f(glGetUniformLocation(id, name.data()), x, y, z, w);
     }
 
-    void SetMat3(const std::string& name, const glm::mat3 &mat) const
+    void SetMat2(std::string_view name, const glm::mat2 &mat) const
     {
-        glUniformMatrix3fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix2fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, &mat[0][0]);
     }
 
-    void SetMat4(const std::string& name, const glm::mat4 &mat) const
+    void SetMat3(std::string_view name, const glm::mat3 &mat) const
     {
-        glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+        glUniformMatrix3fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void SetMat4(std::string_view name, const glm::mat4 &mat) const
+    {
+        glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, &mat[0][0]);
     }
 
 private:
-    void CheckCompileErrors(GLuint shader, const std::string& type)
+    void CheckCompileErrors(GLuint shader, std::string_view type)
     {
         GLint success;
         GLchar info_log[1024];
@@ -141,7 +141,7 @@ private:
             if (!success)
             {
                 glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-                Error("SHADER::%s::COMPILATION_FAILED\n%s\n", type.c_str(), info_log);
+                Error("SHADER::%s::COMPILATION_FAILED\n%s\n", type.data(), info_log);
             }
         }
         else
@@ -150,7 +150,7 @@ private:
             if (!success)
             {
                 glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-                Error("SHADER::%s::LINKING_FAILED\n%s\n", type.c_str(), info_log);
+                Error("SHADER::%s::LINKING_FAILED\n%s\n", type.data(), info_log);
             }
         }
     }

@@ -73,7 +73,7 @@ struct GameState
 {
     bool player_alive = true;
     int player_score = 0;
-    Mode current_mode = Mode::MENU;
+    Mode current_mode = Mode::PLAY;
 };
 
 inline std::pair<float, float> CalculateMovementDeltas(Point origin, Point destination)
