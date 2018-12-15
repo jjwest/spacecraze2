@@ -9,38 +9,31 @@
 static GLuint current_texture = std::numeric_limits<GLuint>::max();
 static GLuint current_shader = std::numeric_limits<GLuint>::max();
 
-void BindTexture(GLuint id)
-{
-    if (id != current_texture)
-    {
+void bind_texture(GLuint id) {
+    if (id != current_texture) {
         glBindTexture(GL_TEXTURE_2D, id);
         current_texture = id;
     }
 }
 
-void BindShader(GLuint id)
-{
-    if (id != current_shader)
-    {
+void bind_shader(GLuint id) {
+    if (id != current_shader) {
         glUseProgram(id);
         current_shader = id;
     }
 }
 
+Renderer::Renderer() {
+    bind_shader(sprite_shader.id);
 
-Renderer::Renderer()
-{
-    BindShader(sprite_shader.id);
+    projection = glm::ortho(0.0f,
+                            static_cast<float>(g_screen_width),
+                            static_cast<float>(g_screen_height),
+                            0.0f,
+                            -1.0f,
+                            1.0f);
 
-    projection = glm::ortho(
-        0.0f,
-        static_cast<float>(g_screen_width),
-        static_cast<float>(g_screen_height),
-        0.0f,
-        -1.0f,
-        1.0f);
-
-    sprite_shader.SetMat4("projection", projection);
+    sprite_shader.set_mat4("projection", projection);
     sprite_mesh.vertices = {
         // Position    // Tex coords
         {{0.0f, 0.0f}, {0.0f, 1.0f}}, // top left
@@ -54,31 +47,28 @@ Renderer::Renderer()
     sprite_mesh.build();
 }
 
-
-void Renderer::DrawBackground(const Texture& texture)
-{
+void Renderer::draw_background(const Texture &texture) {
     glClear(GL_COLOR_BUFFER_BIT);
-    BindTexture(texture.id);
-    BindShader(sprite_shader.id);
+    bind_texture(texture.id);
+    bind_shader(sprite_shader.id);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(g_screen_width, g_screen_height, 0));
 
-    sprite_shader.SetMat4("model", model);
+    sprite_shader.set_mat4("model", model);
 
     glBindVertexArray(sprite_mesh.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float angle, Shader* shader)
-{
-    if (!shader)
-    {
+void Renderer::draw_rect(const Rectangle &rect, const Texture &texture,
+                         float angle, Shader *shader) {
+    if (!shader) {
         shader = &sprite_shader;
     }
 
-    BindShader(shader->id);
-    BindTexture(texture.id);
+    bind_shader(shader->id);
+    bind_texture(texture.id);
 
     glm::mat4 model = glm::mat4(1.0f);
 
@@ -88,7 +78,7 @@ void Renderer::DrawRect(const Rectangle& rect, const Texture& texture, float ang
     model = glm::translate(model, glm::vec3(-0.5 * rect.width, -0.5 * rect.height, 0.0));
     model = glm::scale(model, glm::vec3(rect.width, rect.height, 0.0));
 
-    shader->SetMat4("model", model);
+    shader->set_mat4("model", model);
 
     glBindVertexArray(sprite_mesh.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);

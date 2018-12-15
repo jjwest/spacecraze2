@@ -4,25 +4,22 @@
 #include "game_mode.h"
 #include "renderer.h"
 
-#include <glad/glad.h>
 #include <SDL2/SDL.h>
+#include <glad/glad.h>
 
 #include <memory>
 
-struct Game
-{
-    SDL_Window* window = nullptr;
+struct Game {
+    SDL_Window *window = nullptr;
     SDL_GLContext gl_context;
     std::unique_ptr<GameMode> current_mode = nullptr;
 
     Game();
     ~Game();
 
-    void Run();
-    void InitSubsystems();
-    void ShutdownSubsystems();
+    void run();
+    void init_subsystems();
+    void shutdown_subsystems();
 };
-
-
 
 #endif // _GAME_H_

@@ -1,50 +1,43 @@
 #include "game.h"
 
+#include "audio.h"
 #include "common.h"
 #include "font.h"
-#include "play_mode.h"
 #include "menu.h"
+#include "play_mode.h"
 
-#include <glad/glad.h>
 #include <SDL2/SDL_mixer.h>
+#include <glad/glad.h>
 
-Game::Game()
-{
-    InitSubsystems();
-}
+Game::Game() { init_subsystems(); }
 
-Game::~Game()
-{
-    ShutdownSubsystems();
-}
+Game::~Game() { shutdown_subsystems(); }
 
-void Game::Run()
-{
+void Game::run() {
     const u32 intended_frame_duration_ms = 16;
     GameState state;
     Renderer renderer;
+    Audio audio;
 
     current_mode = std::make_unique<PlayMode>();
 
-    while (state.current_mode != Mode::QUIT)
-    {
+    while (state.current_mode != Mode::QUIT) {
         u32 start_time = SDL_GetTicks();
 
-        current_mode->HandleEvents(&state);
-        current_mode->Update(&state);
-        current_mode->Render(&renderer, state);
+        current_mode->handle_events(&state);
+        current_mode->update(&state);
+        current_mode->render(&renderer, state);
 
         SDL_GL_SwapWindow(window);
 
         u32 time_elapsed = SDL_GetTicks() - start_time;
 
-        if (time_elapsed < intended_frame_duration_ms)
-        {
+        if (time_elapsed < intended_frame_duration_ms) {
             SDL_Delay(intended_frame_duration_ms - time_elapsed);
         }
 
-        if (!state.player_alive)
-        {
+        if (!state.player_alive) {
+            printf("SCORE: %d\n", state.player_score);
             state.player_score = 0;
             state.player_alive = true;
             current_mode = std::make_unique<PlayMode>();
@@ -54,16 +47,13 @@ void Game::Run()
     printf("SCORE: %d\n", state.player_score);
 }
 
-void Game::InitSubsystems()
-{
+void Game::init_subsystems() {
     // INIT SDL
-    if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0 )
-    {
-        FatalError("Failed to initialize SDL");
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+        FATAL_ERROR("Failed to initialize SDL");
     }
-    if ( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
-    {
-        FatalError("Failed to initialize SDL_Mixer");
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        FATAL_ERROR("Failed to initialize SDL_Mixer");
     }
 
     SDL_GL_LoadLibrary(NULL);
@@ -76,8 +66,7 @@ void Game::InitSubsystems()
 
     bool fullscreen = true;
 
-    if (fullscreen)
-    {
+    if (fullscreen) {
         SDL_DisplayMode mode;
         SDL_GetCurrentDisplayMode(0, &mode);
 
@@ -85,46 +74,34 @@ void Game::InitSubsystems()
         g_screen_height = mode.h;
 
         window = SDL_CreateWindow(
-            "SPACECRAZE",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            g_screen_width,
-            g_screen_height,
+            "SPACECRAZE", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            g_screen_width, g_screen_height,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
-    }
-    else
-    {
+    } else {
         window = SDL_CreateWindow(
-            "SPACECRAZE",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            g_screen_width,
-            g_screen_height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+            "SPACECRAZE", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            g_screen_width, g_screen_height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     }
 
-    if (!window)
-    {
-        FatalError("Failed to create window");
+    if (!window) {
+        FATAL_ERROR("Failed to create window");
     }
 
     gl_context = SDL_GL_CreateContext(window);
 
     // INIT OPENGL
-    if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
-    {
-        FatalError("Failed to initialize GLAD");
+    if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
+        FATAL_ERROR("Failed to initialize GLAD");
     }
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glViewport(0, 0, g_screen_width, g_screen_height);
 
-    InitFonts();
+    init_fonts();
 }
 
-void Game::ShutdownSubsystems()
-{
+void Game::shutdown_subsystems() {
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     Mix_CloseAudio();

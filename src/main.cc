@@ -1,9 +1,8 @@
 #include "game.h"
 
-int main()
-{
+int main() {
     Game game;
-    game.Run();
+    game.run();
 
-    return 0;
+  return 0;
 }

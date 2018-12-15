@@ -4,153 +4,147 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-#include <string>
 #include <fstream>
 #include <sstream>
+#include <stdio.h>
+#include <string>
 
 #include "common.h"
 
-struct Shader
-{
+struct Shader {
     GLuint id;
 
-    Shader(const GLchar* vertex_path, const GLchar* fragment_path)
-    {
-        std::string vertex_code;
-        std::string fragment_code;
-        std::ifstream vertex_shader_file;
-        std::ifstream fragment_shader_file;
-
-        vertex_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        fragment_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-        try
-        {
-            vertex_shader_file.open(vertex_path);
-            fragment_shader_file.open(fragment_path);
-            std::stringstream vert_shader_stream, frag_shader_stream;
-
-            vert_shader_stream << vertex_shader_file.rdbuf();
-            frag_shader_stream << fragment_shader_file.rdbuf();
-
-            vertex_shader_file.close();
-            fragment_shader_file.close();
-
-            vertex_code = vert_shader_stream.str();
-            fragment_code = frag_shader_stream.str();
-        }
-        catch (std::ifstream::failure e)
-        {
-            Error("SHADER::FILE_NOT_SUCCESSFULLY_READ");
+    Shader(const GLchar *vertex_path, const GLchar *fragment_path) {
+        char *vertex_code = read_file(vertex_path);
+        if (!vertex_code) {
+            ERROR("Could not open file '%s'", vertex_path);
+            return;
         }
 
-        const char* vert_shader_code = vertex_code.c_str();
-        const char* frag_shader_code = fragment_code.c_str();
+        char *fragment_code = read_file(fragment_path);
+        if (!fragment_code) {
+            ERROR("Could not open file '%s'", fragment_path);
+            free(vertex_code);
+            return;
+        }
 
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &vert_shader_code, NULL);
+        glShaderSource(vertex, 1, &vertex_code, NULL);
         glCompileShader(vertex);
 
-        CheckCompileErrors(vertex, "VERTEX");
+        check_compile_errors(vertex, "VERTEX");
 
         GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &frag_shader_code, NULL);
+        glShaderSource(fragment, 1, &fragment_code, NULL);
         glCompileShader(fragment);
 
-        CheckCompileErrors(fragment, "FRAGMENT");
+        check_compile_errors(fragment, "FRAGMENT");
 
         id = glCreateProgram();
         glAttachShader(id, vertex);
         glAttachShader(id, fragment);
         glLinkProgram(id);
 
-        CheckCompileErrors(id, "PROGRAM");
+        check_compile_errors(id, "PROGRAM");
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
+        free(vertex_code);
+        free(fragment_code);
     }
 
-    void SetBool(std::string_view name, bool value) const
-    {
-        glUniform1i(glGetUniformLocation(id, name.data()), static_cast<int>(value));
+    void set_bool(const char *name, bool value) const {
+        glUniform1i(glGetUniformLocation(id, name), static_cast<int>(value));
     }
 
-    void SetInt(std::string_view name, int value) const
-    {
-        glUniform1i(glGetUniformLocation(id, name.data()), value);
+    void set_int(const char *name, int value) const {
+        glUniform1i(glGetUniformLocation(id, name), value);
     }
 
-    void SetFloat(std::string_view name, float value) const
-    {
-        glUniform1f(glGetUniformLocation(id, name.data()), value);
+    void set_float(const char *name, float value) const {
+        glUniform1f(glGetUniformLocation(id, name), value);
     }
 
-    void SetVec2(std::string_view name, const glm::vec2 &value) const
-    {
-        glUniform2fv(glGetUniformLocation(id, name.data()), 1, &value[0]);
+    void set_vec2(const char *name, const glm::vec2 &value) const {
+        glUniform2fv(glGetUniformLocation(id, name), 1, &value[0]);
     }
 
-    void SetVec2(std::string_view name, float x, float y) const
-    {
-        glUniform2f(glGetUniformLocation(id, name.data()), x, y);
+    void set_vec2(const char *name, float x, float y) const {
+        glUniform2f(glGetUniformLocation(id, name), x, y);
     }
 
-    void SetVec3(std::string_view name, const glm::vec3 &value) const
-    {
-        glUniform3fv(glGetUniformLocation(id, name.data()), 1, &value[0]);
-    }
-    void SetVec3(std::string_view name, float x, float y, float z) const
-    {
-        glUniform3f(glGetUniformLocation(id, name.data()), x, y, z);
+    void set_vec3(const char *name, const glm::vec3 &value) const {
+        glUniform3fv(glGetUniformLocation(id, name), 1, &value[0]);
     }
 
-    void SetVec4(std::string_view name, const glm::vec4 &value) const
-    {
-        glUniform4fv(glGetUniformLocation(id, name.data()), 1, &value[0]);
-    }
-    void SetVec4(std::string_view name, float x, float y, float z, float w) const
-    {
-        glUniform4f(glGetUniformLocation(id, name.data()), x, y, z, w);
+    void set_vec3(const char *name, float x, float y, float z) const {
+        glUniform3f(glGetUniformLocation(id, name), x, y, z);
     }
 
-    void SetMat2(std::string_view name, const glm::mat2 &mat) const
-    {
-        glUniformMatrix2fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, &mat[0][0]);
+    void set_vec4(const char *name, const glm::vec4 &value) const {
+        glUniform4fv(glGetUniformLocation(id, name), 1, &value[0]);
     }
 
-    void SetMat3(std::string_view name, const glm::mat3 &mat) const
-    {
-        glUniformMatrix3fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, &mat[0][0]);
+    void set_vec4(const char *name, float x, float y, float z, float w) const {
+        glUniform4f(glGetUniformLocation(id, name), x, y, z, w);
     }
 
-    void SetMat4(std::string_view name, const glm::mat4 &mat) const
-    {
-        glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, &mat[0][0]);
+    void set_mat2(const char *name, const glm::mat2 &mat) const {
+        glUniformMatrix2fv(glGetUniformLocation(id, name), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void set_mat3(const char *name, const glm::mat3 &mat) const {
+        glUniformMatrix3fv(glGetUniformLocation(id, name), 1, GL_FALSE,
+                           &mat[0][0]);
+    }
+
+    void set_mat4(const char *name, const glm::mat4 &mat) const {
+        glUniformMatrix4fv(glGetUniformLocation(id, name), 1, GL_FALSE, &mat[0][0]);
     }
 
 private:
-    void CheckCompileErrors(GLuint shader, std::string_view type)
-    {
+    char *read_file(const char *filename) {
+        FILE *file = fopen(filename, "rb");
+        if (!file) {
+            return nullptr;
+        }
+
+        fseek(file, 0, SEEK_END);
+        size_t len = ftell(file);
+        fseek(file, 0, SEEK_SET);
+
+        char *content = (char *)calloc(1, len);
+        if (!content) {
+            fclose(file);
+            return nullptr;
+        }
+
+        if (!fread(content, len, 1, file)) {
+            fclose(file);
+            free(content);
+            return nullptr;
+        }
+
+        return content;
+    }
+
+
+    void check_compile_errors(GLuint shader, std::string_view type) {
         GLint success;
         GLchar info_log[1024];
 
-        if (type != "PROGRAM")
-        {
+        if (type != "PROGRAM") {
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (!success)
-            {
+            if (!success) {
                 glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-                Error("SHADER::%s::COMPILATION_FAILED\n%s\n", type.data(), info_log);
+                ERROR("SHADER::%s::COMPILATION_FAILED\n%s\n", type, info_log);
             }
-        }
-        else
-        {
+        } else {
             glGetProgramiv(id, GL_LINK_STATUS, &success);
-            if (!success)
-            {
+            if (!success) {
                 glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-                Error("SHADER::%s::LINKING_FAILED\n%s\n", type.data(), info_log);
+                ERROR("SHADER::%s::LINKING_FAILED\n%s\n", type, info_log);
             }
         }
     }

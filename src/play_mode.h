@@ -12,28 +12,24 @@
 
 #include <vector>
 
-struct SpawnInfo
-{
+struct SpawnInfo {
     u32 amount;
     u32 cooldown_ms;
     u32 time_last_spawned = SDL_GetTicks();
 };
 
-enum struct Side
-{
-    LEFT   = 0,
-    RIGHT  = 1,
-    TOP    = 2,
-    BOTTOM = 3
+enum struct Side {
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM
 };
 
-
-struct PlayMode: GameMode
-{
+struct PlayMode : GameMode {
     PlayMode();
-    virtual void HandleEvents(GameState* state) override;
-    virtual void Update(GameState* state) override;
-    virtual void Render(Renderer* renderer, const GameState& state) override;
+    virtual void handle_events(GameState *state) override;
+    virtual void update(GameState *state) override;
+    virtual void render(Renderer *renderer, const GameState &state) override;
 
     SDL_Event events;
     Player player;
@@ -51,7 +47,7 @@ struct PlayMode: GameMode
     SpawnInfo spawn_info_drone = {5, 1500};
     SpawnInfo spawn_info_powerup = {1, 4000};
 
-    Texture texture_player {"../sprites/playership.png"};
+    Texture texture_player{"../sprites/playership.png"};
     Texture texture_asteroid{"../sprites/meteor.png"};
     Texture texture_blaster{"../sprites/blaster.png"};
     Texture texture_drone{"../sprites/drone.png"};
@@ -67,22 +63,21 @@ struct PlayMode: GameMode
     std::uniform_int_distribution<int> range_x{0, g_screen_width};
     std::uniform_int_distribution<int> range_y{0, g_screen_height};
 
-
 private:
-    void UpdateScore(GameState* state, int new_score);
-    void UpdatePlayer();
-    void UpdateLasers();
-    void UpdateEntities(GameState* state);
-    void SpawnPowerups();
-    void SpawnEnemies();
-    void ResolveCollisions(GameState* state);
-    void RemoveDeadEntities();
-    Rectangle GenerateEnemySpawnPosition(float width, float height);
-    Rectangle GeneratePowerupSpawnPosition(float width, float height);
-    void SpawnAsteroids();
-    void SpawnBlasters();
-    void SpawnDrones();
-    Point GeneratePointOnOppositeSide(Point origin);
+    void update_score(GameState *state, int new_score);
+    void update_player();
+    void update_lasers();
+    void update_entities(GameState *state);
+    void spawn_powerups();
+    void spawn_enemies();
+    void resolve_collisions(GameState *state);
+    void remove_dead_entities();
+    Rectangle generate_enemy_spawn_position(float width, float height);
+    Rectangle generate_powerup_spawn_position(float width, float height);
+    void spawn_asteroids();
+    void spawn_blasters();
+    void spawn_drones();
+    Point generate_point_on_opposite_side(Point origin);
 };
 
 #endif // _PLAY_MODE_H_

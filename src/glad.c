@@ -7,7 +7,7 @@
     APIs: gl=4.4
     Profile: core
     Extensions:
-        
+
     Loader: True
     Local files: False
     Omit khrplatform: False
@@ -23,13 +23,13 @@
 #include <string.h>
 #include <glad/glad.h>
 
-static void* get_proc(const char *namez);
+static void *get_proc(const char *namez);
 
 #ifdef _WIN32
 #include <windows.h>
 static HMODULE libGL;
 
-typedef void* (APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
+typedef void *(APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
 static PFNWGLGETPROCADDRESSPROC_PRIVATE gladGetProcAddressPtr;
 
 static
@@ -53,10 +53,10 @@ void close_gl(void) {
 }
 #else
 #include <dlfcn.h>
-static void* libGL;
+static void *libGL;
 
 #ifndef __APPLE__
-typedef void* (APIENTRYP PFNGLXGETPROCADDRESSPROC_PRIVATE)(const char*);
+typedef void *(APIENTRYP PFNGLXGETPROCADDRESSPROC_PRIVATE)(const char*);
 static PFNGLXGETPROCADDRESSPROC_PRIVATE gladGetProcAddressPtr;
 #endif
 
@@ -101,8 +101,8 @@ void close_gl(void) {
 #endif
 
 static
-void* get_proc(const char *namez) {
-    void* result = NULL;
+void *get_proc(const char *namez) {
+    void *result = NULL;
     if(libGL == NULL) return NULL;
 
 #ifndef __APPLE__
@@ -1466,8 +1466,8 @@ static void find_coreGL(void) {
      */
     int i, major, minor;
 
-    const char* version;
-    const char* prefixes[] = {
+    const char *version;
+    const char *prefixes[] = {
         "OpenGL ES-CM ",
         "OpenGL ES-CL ",
         "OpenGL ES ",
@@ -1544,4 +1544,3 @@ int gladLoadGLLoader(GLADloadproc load) {
 	if (!find_extensionsGL()) return 0;
 	return GLVersion.major != 0 || GLVersion.minor != 0;
 }
-

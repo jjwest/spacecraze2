@@ -5,11 +5,9 @@
 #include "mesh.h"
 #include "powerup.h"
 
-
 struct Laser;
 
-struct Player
-{
+struct Player {
     bool has_singularity_weapon = true;
     float damage = 5.0;
     int angle = 0;
@@ -17,15 +15,13 @@ struct Player
     u32 shoot_cooldown_ms = 50;
     u32 time_last_shot = 0;
     Rectangle position = {(float)(g_screen_width / 2) - 25,
-                          (float)(g_screen_height / 2) - 19,
-                          50.0,
-                          38.0};
+                          (float)(g_screen_height / 2) - 19, 50.0, 38.0};
 
-    void Update(std::vector<Laser>* player_lasers, const ActivatedPowerups& powerups);
+    void update(std::vector<Laser> *player_lasers,
+                const ActivatedPowerups &powerups);
 };
 
-struct Laser
-{
+struct Laser {
     int angle = 0;
     float health = 1.0;
     float speed = 8.0;
@@ -36,11 +32,10 @@ struct Laser
 
     Laser(Point origin, Point destination, float damage, int angle);
 
-    void Update();
+    void update();
 };
 
-struct Asteroid
-{
+struct Asteroid {
     Rectangle position = {0.0, 0.0, 75.0, 75.0};
     float health = 500.0;
     int angle = 0;
@@ -49,11 +44,10 @@ struct Asteroid
     float dy = 0.0;
     int score_value = 50;
 
-    void Update();
+    void update();
 };
 
-struct Blaster
-{
+struct Blaster {
     Rectangle position = {0.0, 0.0, 75.0, 75.0};
     float health = 50.0;
     int angle = 0;
@@ -63,22 +57,20 @@ struct Blaster
     u32 time_last_shot = 0;
     Point destination;
 
-    void Update(std::vector<Laser>* lasers, Point player_pos);
+    void update(std::vector<Laser> *lasers, Point player_pos);
 
 private:
-    void UpdateMovementDirection();
+    void update_movement_direction();
 };
 
-
-struct Drone
-{
+struct Drone {
     Rectangle position = {0.0, 0.0, 50.0, 50.0};
     float health = 10.0;
     int angle = 0;
     float speed = 3.0;
     int score_value = 5;
 
-    void Update(Point destination);
+    void update(Point destination);
 };
 
 #endif // _ENTITIES_H_

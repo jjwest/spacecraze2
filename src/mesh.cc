@@ -4,8 +4,7 @@
 #include <glad/glad.h>
 #include <stb_image.h>
 
-Texture::Texture(const std::string& path)
-{
+Texture::Texture(std::string_view path) {
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
 
@@ -16,31 +15,26 @@ Texture::Texture(const std::string& path)
 
     int num_channels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(path.c_str(), &this->width, &this->height, &num_channels, 4);
+    unsigned char *data =
+        stbi_load(path.data(), &this->width, &this->height, &num_channels, 4);
 
-    if (!data)
-    {
-        Error("Failed to load texture '%s'\n", path.c_str());
+    if (!data) {
+        ERROR("Failed to load texture '%s'\n", path.data());
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     stbi_image_free(data);
 }
 
-Texture::~Texture()
-{
-    glDeleteTextures(1, &id);
-}
+Texture::~Texture() { glDeleteTextures(1, &id); }
 
-
-void Mesh::build()
-{
-    if (vertices.empty())
-    {
-        Error("Tried building mesh without initializing vertices" );
+void Mesh::build() {
+    if (vertices.empty()) {
+        ERROR("Tried building mesh without initializing vertices");
         return;
     }
 
@@ -50,23 +44,22 @@ void Mesh::build()
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex),
+                 &this->vertices[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          (void *)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-
-Mesh::~Mesh()
-{
-    if (VBO != 0)
-    {
+Mesh::~Mesh() {
+    if (VBO != 0) {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
     }

@@ -14,21 +14,20 @@
 
 #define COLOR_GREEN glm::vec3(0.7, 0.7, 0.3)
 
-struct FontAnimation
-{
+struct FontAnimation {
     u32 duration_ms;
     u32 time_started_ms;
     glm::vec3 color;
 };
 
 
-void InitFonts();
-void DrawText(std::string_view text, float x, float y, float scale, glm::vec3 color);
-void DrawAnimatedText(std::string_view text,
+void init_fonts();
+void draw_text(std::string_view text, float x, float y, float scale, glm::vec3 color);
+void draw_animated_text(std::string_view text,
                       float x,
                       float y,
                       float scale,
                       glm::vec3 color,
-                      const FontAnimation animation);
+                      const FontAnimation &animation);
 
 #endif // _FONT_H_

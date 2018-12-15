@@ -18,7 +18,7 @@ struct Texture
     int width;
     int height;
 
-    Texture(const std::string& path);
+    Texture(std::string_view path);
     ~Texture();
 };
 
