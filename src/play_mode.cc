@@ -118,7 +118,7 @@ void PlayMode::spawn_powerups() {
             break;
 
         default:
-            ERROR("Tried to instantiate powerup of kind COUNT.");
+            error("Tried to instantiate powerup of kind COUNT.");
             break;
         }
 

@@ -19,7 +19,7 @@ Texture::Texture(std::string_view path) {
         stbi_load(path.data(), &this->width, &this->height, &num_channels, 4);
 
     if (!data) {
-        ERROR("Failed to load texture '%s'\n", path.data());
+        error("Failed to load texture '%s'\n", path.data());
     }
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
@@ -34,7 +34,7 @@ Texture::~Texture() { glDeleteTextures(1, &id); }
 
 void Mesh::build() {
     if (vertices.empty()) {
-        ERROR("Tried building mesh without initializing vertices");
+        error("Tried building mesh without initializing vertices");
         return;
     }
 

@@ -19,8 +19,8 @@ using i64 = int64_t;
 extern int g_screen_width;
 extern int g_screen_height;
 
-inline void _error(const char *file, int line, const char *format, ...) {
-    fprintf(stderr, "ERROR %s:%d:\n      ", file, line);
+inline void error(const char *format, ...) {
+    fprintf(stderr, "error: ");
     va_list args;
     va_start(args, format);
     vfprintf(stderr, format, args);
@@ -28,13 +28,11 @@ inline void _error(const char *file, int line, const char *format, ...) {
     fprintf(stderr, "\n");
 }
 
-inline void _fatal_error(const char *file, int line, const char *format, ...) {
-    _error(file, line, format);
+inline void fatal_error(const char *format, ...) {
+    fprintf(stderr, "fatal ");
+    error(format);
     exit(1);
 }
-
-#define ERROR(...) _error(__FILE__, __LINE__, __VA_ARGS__)
-#define FATAL_ERROR(...) _fatal_error(__FILE__, __LINE__, __VA_ARGS__)
 
 struct Point;
 

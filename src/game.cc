@@ -50,10 +50,10 @@ void Game::run() {
 void Game::init_subsystems() {
     // INIT SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-        FATAL_ERROR("Failed to initialize SDL");
+        fatal_error("Failed to initialize SDL");
     }
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        FATAL_ERROR("Failed to initialize SDL_Mixer");
+        fatal_error("Failed to initialize SDL_Mixer");
     }
 
     SDL_GL_LoadLibrary(NULL);
@@ -84,14 +84,14 @@ void Game::init_subsystems() {
     }
 
     if (!window) {
-        FATAL_ERROR("Failed to create window");
+        fatal_error("Failed to create window");
     }
 
     gl_context = SDL_GL_CreateContext(window);
 
     // INIT OPENGL
     if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
-        FATAL_ERROR("Failed to initialize GLAD");
+        fatal_error("Failed to initialize GLAD");
     }
 
     glEnable(GL_BLEND);

@@ -15,7 +15,7 @@ Audio::~Audio() {
 void Audio::load_sound_effect(const char *name, const char *file) {
     Mix_Chunk *sound_effect = Mix_LoadWAV(file);
     if (!sound_effect) {
-        ERROR("Could not load sound effect '%s'", file);
+        error("Could not load sound effect '%s'", file);
         return;
     }
     sound_effects.insert({name, sound_effect});
@@ -24,7 +24,7 @@ void Audio::load_sound_effect(const char *name, const char *file) {
 void Audio::load_music(const char *name, const char *file) {
     Mix_Music *m = Mix_LoadMUS(file);
     if (!m) {
-        ERROR("Could not load music '%s'", file);
+        error("Could not load music '%s'", file);
         return;
     }
     music.insert({name, m});
@@ -33,7 +33,7 @@ void Audio::load_music(const char *name, const char *file) {
 void Audio::play_music(const char *name) {
     auto it = music.find(name);
     if (it == end(music)) {
-        ERROR("Tried playing non-existing music '%s'", name);
+        error("Tried playing non-existing music '%s'", name);
         return;
     }
     Mix_PlayMusic(it->second, -1);
@@ -42,7 +42,7 @@ void Audio::play_music(const char *name) {
 void Audio::play_sound_effect(const char *name) {
     auto it = sound_effects.find(name);
     if (it == end(sound_effects)) {
-        ERROR("Tried playing non-existing sound effect '%s'", name);
+        error("Tried playing non-existing sound effect '%s'", name);
         return;
     }
     Mix_PlayChannel(-1, it->second, 1);

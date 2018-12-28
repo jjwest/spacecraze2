@@ -17,13 +17,13 @@ struct Shader {
     Shader(const GLchar *vertex_path, const GLchar *fragment_path) {
         char *vertex_code = read_file(vertex_path);
         if (!vertex_code) {
-            ERROR("Could not open file '%s'", vertex_path);
+            error("Could not open file '%s'", vertex_path);
             return;
         }
 
         char *fragment_code = read_file(fragment_path);
         if (!fragment_code) {
-            ERROR("Could not open file '%s'", fragment_path);
+            error("Could not open file '%s'", fragment_path);
             free(vertex_code);
             return;
         }
@@ -114,17 +114,15 @@ private:
         size_t len = ftell(file);
         fseek(file, 0, SEEK_SET);
 
-        char *content = (char *)calloc(1, len);
-        if (!content) {
-            fclose(file);
-            return nullptr;
-        }
+        char *content = (char *)malloc(len + 1);
 
-        if (!fread(content, len, 1, file)) {
+        if (fread(content, len, 1, file) != 1) {
             fclose(file);
             free(content);
             return nullptr;
         }
+
+        content[len] = 0;
 
         return content;
     }
@@ -138,13 +136,13 @@ private:
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if (!success) {
                 glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-                ERROR("SHADER::%s::COMPILATION_FAILED\n%s\n", type, info_log);
+                error("SHADER::%s::COMPILATION_FAILED\n%s\n", type, info_log);
             }
         } else {
             glGetProgramiv(id, GL_LINK_STATUS, &success);
             if (!success) {
                 glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-                ERROR("SHADER::%s::LINKING_FAILED\n%s\n", type, info_log);
+                error("SHADER::%s::LINKING_FAILED\n%s\n", type, info_log);
             }
         }
     }
